@@ -91,7 +91,7 @@ export class I18nTranslateActions {
         this.transactions.push(ta);
     }
     public getActions() : I18nTranslateAction[] {
-        return this.transactions; // TODO copy?
+        return this.transactions; // TODO copy? Object.assign(obj1, obj2);
     }
 }
 
@@ -178,6 +178,7 @@ export class I18nOneLanguage {
      */
     public mergeItems(two:any) {
         this.onelng = {...this.onelng,...two.onelng};
+        // Object.assign(obj1, obj2);
     }
     /**
      * get all items from this language
