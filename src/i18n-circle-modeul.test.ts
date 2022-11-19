@@ -1,0 +1,137 @@
+import {describe, expect, test} from '@jest/globals';
+import { I18nOneLanguage,I18nTranslateActions } from './i18n-circle-model';
+
+describe('I18nOneLanguage', () => {
+
+  test('I18nOneLanguage-Basics', () => {
+      let one = new I18nOneLanguage({});
+      expect(one).toBeTruthy();
+      expect(Object.keys(one.getItems()).length).toBe(0);
+      expect(one.getKeys().length).toBe(0);
+      expect(one.getHistory(false).length).toBe(0);
+      expect(one.getItem("test1")).toBe('test1');
+      expect(one.hasKey("test1")).toBeFalsy();
+      one.setItem("test1","test1-val");
+      expect(Object.keys(one.getItems()).length).toBe(1);
+      expect(one.getKeys().length).toBe(1);
+      expect(one.getHistory(false).length).toBe(1);
+      expect(one.getItem("test1")).toBe('test1-val');
+      expect(one.hasKey("test1")).toBeTruthy();
+      one.setItem("test1","test1-val");
+      expect(Object.keys(one.getItems()).length).toBe(1);
+      expect(one.getKeys().length).toBe(1);
+      expect(one.getHistory(false).length).toBe(1);
+      expect(one.getItem("test1")).toBe('test1-val');
+      one.setItem("test1","test1-val-update");
+      expect(Object.keys(one.getItems()).length).toBe(1);
+      expect(one.getKeys().length).toBe(1);
+      expect(one.getHistory(true).length).toBe(2);
+      expect(one.getHistory(false).length).toBe(0);
+      expect(one.getItem("test1")).toBe('test1-val-update');
+      expect(one.hasKey("test1")).toBeTruthy();
+      one.deleteItem("test1");
+      expect(Object.keys(one.getItems()).length).toBe(0);
+      expect(one.getKeys().length).toBe(0);
+      expect(one.hasKey("test1")).toBeFalsy();
+      expect(one.getItem("test1")).toBe('test1');
+      one.setItem("test1","test2-val");
+      expect(Object.keys(one.getItems()).length).toBe(1);
+      expect(one.getKeys().length).toBe(1);
+      expect(one.getHistory(true).length).toBe(1);
+      expect(one.getHistory(false).length).toBe(0);
+      expect(one.getItem("test1")).toBe('test2-val');
+      expect(one.hasKey("test1")).toBeTruthy();
+      one.emptyItems();
+      expect(one.getHistory(false).length).toBe(0);
+      expect(one.getKeys().length).toBe(0);
+      expect(Object.keys(one.getItems()).length).toBe(0);
+      expect(one.getItem("test1")).toBe('test1');
+  });
+  test('I18nOneLanguage-Merging', () => {
+    let one = new I18nOneLanguage({});
+    expect(one).toBeTruthy();
+    let two = new I18nOneLanguage({});
+    expect(two).toBeTruthy();
+    one.setItem("test1","test1-val1");
+    one.setItem("test2","test2-val1");
+    one.setItem("test3","test3-val1");
+    one.setItem("test4","test4-val1");
+    one.setItem("test5","test5-val1");
+    expect(one.getHistory(true).length).toBe(5);
+    expect(one.getKeys().length).toBe(5);
+    expect(Object.keys(one.getItems()).length).toBe(5);
+    two.setItem("test6","test6-val2");
+    two.setItem("test7","test7-val2");
+    two.setItem("test8","test8-val2");
+    two.setItem("test2","test2-val2");
+    two.setItem("test4","test4-val2");
+    expect(two.getHistory(true).length).toBe(5);
+    expect(two.getKeys().length).toBe(5);
+    expect(Object.keys(two.getItems()).length).toBe(5);
+    one.mergeItems(two);
+    // console.log(one);
+    expect(one.getHistory(true).length).toBe(0);
+    expect(one.getKeys().length).toBe(8);
+    expect(Object.keys(one.getItems()).length).toBe(8);
+    expect(one.getItem("test1")).toBe('test1-val1');
+    expect(one.getItem("test2")).toBe('test2-val2');
+    expect(one.getItem("test3")).toBe('test3-val1');
+    expect(one.getItem("test4")).toBe('test4-val2');
+    expect(one.getItem("test5")).toBe('test5-val1');
+    expect(one.getItem("test6")).toBe('test6-val2');
+    expect(one.getItem("test7")).toBe('test7-val2');
+    expect(one.getItem("test8")).toBe('test8-val2');
+    // init with value field from one to three.
+    let three = new I18nOneLanguage(one.getItems());
+    expect(three.getHistory(false).length).toBe(0);
+    expect(three.getKeys().length).toBe(8);
+    expect(Object.keys(three.getItems()).length).toBe(8);
+    expect(three.getItem("test1")).toBe('test1-val1');
+    expect(three.getItem("test2")).toBe('test2-val2');
+    expect(three.getItem("test3")).toBe('test3-val1');
+    expect(three.getItem("test4")).toBe('test4-val2');
+    expect(three.getItem("test5")).toBe('test5-val1');
+    expect(three.getItem("test6")).toBe('test6-val2');
+    expect(three.getItem("test7")).toBe('test7-val2');
+    expect(three.getItem("test8")).toBe('test8-val2');
+    three.deleteItem('test8');
+    expect(three.getHistory(false).length).toBe(0);
+    expect(three.getKeys().length).toBe(7);
+    expect(Object.keys(three.getItems()).length).toBe(7);
+    expect(three.getItem("test8")).toBe('test8');
+    expect(  one.getItem("test8")).toBe('test8-val2');
+  });
+  test('I18nOneLanguage-Transactions', () => {
+    let one = new I18nOneLanguage({});
+    expect(one).toBeTruthy();
+    let two = new I18nOneLanguage({});
+    expect(two).toBeTruthy();
+    one.setItem("test1","test1-val1");
+    one.setItem("test2","test2-val1");
+    one.setItem("test3","test3-val1");
+    one.setItem("test4","test4-val1");
+    one.setItem("test5","test5-val1");
+    expect(one.getHistory(true).length).toBe(5);
+    expect(one.getKeys().length).toBe(5);
+    expect(Object.keys(one.getItems()).length).toBe(5);
+    two.setItem("test6","test6-val2");
+    two.setItem("test7","test7-val2");
+    two.setItem("test8","test8-val2");
+    two.setItem("test2","test2-val2");
+    two.setItem("test4","test4-val2");
+    expect(two.getHistory(true).length).toBe(5);
+    expect(two.getKeys().length).toBe(5);
+    expect(Object.keys(two.getItems()).length).toBe(5);
+    let transact : I18nTranslateActions = one.comparePairs(
+        'mod1','lng1',two,'mod2','lng2');
+    // console.log(transact);
+    expect(transact.getActions().length).toBe(6);
+    // TODO check mod adn languages
+    transact = one.comparePairs(
+        'mod1','lng1',two,'mod2','lng2',true);
+    // console.log(transact);
+    expect(transact.getActions().length).toBe(8);
+    // TODO check actions in detail? 
+    // TODO reusing scenario for transaction handling
+});
+});
