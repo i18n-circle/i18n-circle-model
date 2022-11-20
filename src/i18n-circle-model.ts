@@ -422,7 +422,7 @@ export class I18nLanguages {
     }
     /**
      * @constructor 
-     * @param defaultLanguage - sets the defaultlanguage
+     * @param allLanguages - sets the all data within
      */
     constructor(allLanguages:any) {
         if (typeof allLanguages === 'object' && allLanguages !== null) {
@@ -658,11 +658,23 @@ export class I18nLanguages {
  * @public
  */
 export class I18nOneModule {
-    private modname:string='';
+    private externalName:string='';
+    private semanticVersion:string='';
+    private internalVersion:number = 0;
+    private internalName:string='';
     private filepath:string='';
     private createFlag:boolean= true;
-    private languages:I18nLanguages|null = null;
-    
+    private languages:I18nLanguages;
+
+    /**
+     * 
+     * @returns the internal name fields separated by '__'
+     */
+    public getInternalName():string{
+        return this.externalName+"__"
+              +this.semanticVersion+"__"
+              +this.internalVersion;
+    }
     /**
      * @constructor
      * create the module with all initializers
@@ -671,16 +683,63 @@ export class I18nOneModule {
      * @param filepath - filepath, wehre the module parameters were loaded from.
      * @param createFlag - if true getOrCreateItem creates missing keys, if false not.
      * @param lng - javascript object to initialize an I18nLanguages object.
+     * @private
      */
-    constructor(modname:string,filepath:string,createFlag:boolean,lng:any) {
-        this.modname = modname;
+    private constructor(intName:string,filepath:string,createFlag:boolean,lng:any) {
+        var spl = intName.split("__");
+        if (spl.length > 0) {
+            this.externalName = spl[0];
+        } else {
+            this.externalName = intName;
+            this.semanticVersion = 'V0.0.1';
+            this.internalVersion = 1;
+        }
+        if (spl.length > 1 && spl[1].match(/^V[0-9]+\.[0-9]+\.+[0-9]/)) {
+            this.semanticVersion = spl[1];
+            if (spl.length > 2 && spl[2].match(/^[0-9]+$/)) {
+                this.internalVersion = Number.parseInt(spl[1]);
+            } else {
+                this.internalVersion = 1;
+            }
+        } else if (spl[1].match(/^[0-9]+$/)) {
+            this.semanticVersion = 'V0.0.1';
+            this.internalVersion = Number.parseInt(spl[1]);
+        } else {
+            this.semanticVersion = 'V0.0.1';
+            this.internalVersion = 1;
+        }
+        this.internalName = this.getInternalName();
         this.filepath = filepath;
         this.createFlag = createFlag;
         if (typeof lng === 'object' && lng !== null) {
             this.languages = new I18nLanguages(lng);
         } else {
-            this.languages = null;
+            this.languages = new I18nLanguages({});
         }
+    }
+    /**
+     * 
+     * @param data a saved javascript object to initialize the module.
+     * @returns the module on success or an error message on failure.
+     */
+    public static createFromData(data:any) : I18nOneModule|string {
+        var mod : I18nOneModule;
+        if (data.hasOwnProperty("internalName")) {
+            mod = new I18nOneModule(
+                data['internalName'],
+                data['filePath']||'',
+                data['createFlag']||true,
+                data['languages']||null);
+        } else if (data.hasOwnProperty("externalName")) {
+            mod = new I18nOneModule(
+                data['externalName'],
+                data['filePath']||'',
+                data['createFlag']||true,
+                data['languages']||null);
+        } else {
+            return "parameter error in internalName/externalName";
+        }
+        return mod;
     }
     
     /**
@@ -689,7 +748,7 @@ export class I18nOneModule {
      */
     public getModule() : any {
         return {
-            modname: this.modname,
+            internalName: this.internalName,// TODO versioning?
             filepath: this.filepath,
             createFlag: this.createFlag,
             languages: (this.languages==null) ? {} : this.languages.getAllItems()
@@ -715,5 +774,133 @@ export class I18nOneModule {
             }
         }
         return key;
+    }
+    /**
+     * sets or merge a language collection of key/value-pairs
+     * 
+     * @param lngkey - the language key e.g. 'en'
+     * @param lngmap - the javascript object to initialize.
+     */
+     public addLanguage(lngkey:string,lngmap:any) {
+        if (this.languages != null) {
+            this.languages.addLanguage(lngkey,lngmap);
+        }
+    }
+    /**
+     * hasLanguage checks if a language key is existent
+     */
+    public hasLanguage(lngkey:string): boolean {
+        return (this.languages==null)?false:this.languages.hasLanguage(lngkey);
+    }
+    /**
+     * hasKey checks if the language and the key is existent in that language.
+     * 
+     * @param lngkey - The language key to search for
+     * @param key - The key in that language.
+     */
+    public hasKey(lngkey:string,key:string) : boolean {
+        return (this.languages==null)?false:this.languages.hasKey(lngkey,key);
+    }
+    /**
+     * Sets a key/value pair, if not existent and tracks a history of keys.
+     *
+     * @param lngkey - the language key to set (e.g 'en','de')
+     * @param key - the key (text in default language)
+     * @param value - The text in the current language.
+     */
+    public setItem(lngkey:string,key:string,value:string): void {
+        if (this.languages != null) {
+            this.languages.setItem(lngkey,key,value);
+        }
+    }
+    /**
+     * 
+     * @param lngkey - current language to delete in
+     * @param key - key to delete
+     * 
+     */
+    public deleteItem(lngkey:string,key:string): void {
+        if (this.languages != null) {
+            this.languages.deleteItem(lngkey,key);
+        }
+    }
+    /**
+     * 
+     * @param lngkey language to empty.
+     */
+    public emptyItems(lngkey:string): void {
+        if (this.languages != null) {
+            this.languages.emptyItems(lngkey);
+        }
+    }
+    /**
+     * get all items for one language key
+     * 
+     * @param lngkey - the language key e.g. 'en','de'
+     * @returns the javascript object representing the languange key/value pairs.
+     */
+    public getItems(lngkey:string): any {
+        return (this.languages==null)?{}:this.languages.getItems(lngkey);
+    }
+    /**
+     * get all items for all language keys
+     * 
+     * @returns the javascript object representing all lanugages
+     */
+    public getAllItems(): any {
+        return (this.languages==null)?{}:this.languages.getAllItems();
+    }
+    
+    /**
+     * merge all items with a second javascript object
+     * 
+     * @remarks
+     * Keys in the parameter two will overwrite existing key/value pairs in the existing one.
+     * 
+     * @param lngkey - which language to merge in.
+     * @param other - the OneLanugage or key/value pairs object to merge.
+     * @alpha (data type checks?)
+     */
+    public mergeItems(lngkey:string,other:any) :void {
+        if (this.languages != null) {
+            this.languages.mergeItems(lngkey,other);
+        }
+    }
+    /**
+     * 
+     * @param lngkey the language to get the keys from
+     * @returns a string list of keys.
+     */
+    public getLanguageKeys(lngkey:string) : string[] {
+        return (this.languages==null)?[]:this.languages.getLanguageKeys(lngkey);
+    }
+    /**
+     * returns the change history for one language key, if any
+     * 
+     * @param lngkey - the language key for interes.
+     * @param flush - if true the history is reset to an empty list.
+     * 
+     * @returns a string list of keys
+     */
+     public getHistory(lngkey:string,flush:boolean): string[] {
+        if (this.languages != null) {
+            return this.languages.getHistory(lngkey,flush);
+        } else {
+            return [];
+        }
+    }
+    /**
+     * compares two collections of I18nLanguages and produces an action list
+     * @param srcmod module name of this source
+     * @param target target langauges to compare with
+     * @param targetmod module name of that target
+     * @returns list of Transactions
+     */
+    public compareLanguages(srcmod:string,target:I18nLanguages,targetmod:string) : I18nTranslateActions|null {
+        if (this.languages != null) {
+            return this.languages.compareLanguages(srcmod,target,targetmod);
+        } else {
+            return null;
+        }
     }
 }
