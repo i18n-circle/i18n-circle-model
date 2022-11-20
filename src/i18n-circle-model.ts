@@ -30,12 +30,25 @@ export class I18nTranslateAction {
     private constructor(actionType:I18nTranslateActionType) {
         this.actionType = actionType;
     }
+    /**
+     * sets the source and target form this action.
+     * 
+     * @param sourceMod     - modulename of the source module
+     * @param sourceLngKey  - languagekey of current source langauge
+     * @param targetMod     - modulname of the target module
+     * @param targetLngKey  - languagekey of the current target language
+     */
     public setSourceAndTarget(sourceMod:string,sourceLngKey:string,targetMod:string,targetLngKey:string) {
         this.sourceMod=sourceMod;
         this.sourceLngKey = sourceLngKey;
         this.targetMod = targetMod;
         this.targetLngKey = targetLngKey;
     }
+    /**
+     * Converts this action to string
+     * 
+     * @returns a short string representaion of current action.
+     */
     public toString() :string{
         var txt : string ='';
         txt += "["+this.sourceMod+'.'+this.sourceLngKey+"=>"
@@ -66,22 +79,43 @@ export class I18nTranslateAction {
         }
         return txt;
     }
+    /**
+     * 
+     * @param key the key to add
+     * @returns the NewKey-action
+     */
     public static setupNewKey(key:string):I18nTranslateAction {
         var ta = new I18nTranslateAction(I18nTranslateActionType.NEW_KEY);
         ta.key = key;
         return ta;
     }
+    /**
+     * 
+     * @param key the key to delete
+     * @returns the DelKey Action
+     */
     public static setupDelKey(key:string):I18nTranslateAction {
         var ta = new I18nTranslateAction(I18nTranslateActionType.DEL_KEY);
         ta.key = key;
         return ta;
     }
+    /**
+     * 
+     * @param key the key to find
+     * @param val the value to update
+     * @returns the UpdateValue Action
+     */
     public static setupUpdateValue(key:string,val:string):I18nTranslateAction {
         var ta = new I18nTranslateAction(I18nTranslateActionType.UPDATE_VALUE);
         ta.key = key;
         ta.value = val;
         return ta;
     }
+    /**
+     * 
+     * @param type a type without additional data to report
+     * @returns the action according to the type
+     */
     public static setupWithoutKeyOrValue(type:I18nTranslateActionType):I18nTranslateAction {
         var ta = new I18nTranslateAction(type);
         return ta;
@@ -114,7 +148,7 @@ export class I18nTranslateActions {
      *
      * @param key - the key (text in default language)
      */
-    public setupNewKey(key:string) {
+    public setupNewKey(key:string) : void {
         var ta = I18nTranslateAction.setupNewKey(key);
         ta.setSourceAndTarget(this.sourceMod,this.sourceLngKey,this.targetMod,this.targetLngKey);
         this.transactions.push(ta);
@@ -124,7 +158,7 @@ export class I18nTranslateActions {
      *
      * @param key - the key (text in default language)
      */
-    public setupDelKey(key:string) {
+    public setupDelKey(key:string) : void {
         var ta = I18nTranslateAction.setupDelKey(key);
         ta.setSourceAndTarget(this.sourceMod,this.sourceLngKey,this.targetMod,this.targetLngKey);
         this.transactions.push(ta);
@@ -135,40 +169,41 @@ export class I18nTranslateActions {
      * @param key - the key (text in default language)
      * @param value - The text in the target space language.
      */
-    public setupUpdateValue(key:string,val:string) {
+    public setupUpdateValue(key:string,val:string) :void {
         var ta = I18nTranslateAction.setupUpdateValue(key,val);
         ta.setSourceAndTarget(this.sourceMod,this.sourceLngKey,this.targetMod,this.targetLngKey);
         this.transactions.push(ta);
     }
     /**
-     * setupMismatchDefaultLanguage
+     * Adds the mismatch as action to the actionlist
      */
-    public setupMismatchDefaultLanguage() {
+    public setupMismatchDefaultLanguage():void {
         var ta = I18nTranslateAction.setupWithoutKeyOrValue(
             I18nTranslateActionType.MISMATCH_DEFAULT_LNG);
         ta.setSourceAndTarget(this.sourceMod,this.sourceLngKey,this.targetMod,this.targetLngKey);
         this.transactions.push(ta);
     }
     /**
-     * setupNewLanguage
+     * adds the new language indicator to the actionlist
      */
-     public setupNewLanguage() {
+     public setupNewLanguage() : void {
         var ta = I18nTranslateAction.setupWithoutKeyOrValue(
             I18nTranslateActionType.NEW_LANGUAGE);
         ta.setSourceAndTarget(this.sourceMod,this.sourceLngKey,this.targetMod,this.targetLngKey);
         this.transactions.push(ta);
     }
     /**
-     * setupDelLanguage
+     * adds the delete language indicator to the actionlist
      */
-     public setupDelLanguage() {
+     public setupDelLanguage() :void {
         var ta = I18nTranslateAction.setupWithoutKeyOrValue(
             I18nTranslateActionType.DEL_LANGUAGE);
         ta.setSourceAndTarget(this.sourceMod,this.sourceLngKey,this.targetMod,this.targetLngKey);
         this.transactions.push(ta);
     }
     /**
-     * getTransScript
+     * 
+     * @returns a string list representation of the action list.
      */
     public getTransScript():string[] {
         var result : string[] = [];
@@ -177,12 +212,24 @@ export class I18nTranslateActions {
         });
         return result;
     }
+    /**
+     * 
+     * @returns the list of transactions
+     */
     public getActions() : I18nTranslateAction[] {
         return this.transactions;
     }
+    /**
+     * 
+     * @returns the size of the internal action list
+     */
     public getActionSize() : number {
         return this.transactions.length;
     }
+    /**
+     * 
+     * @param other the other action list to be appended to this one
+     */
     public appendOther(other:I18nTranslateActions) {
         if (other.getActionSize()>0) {
             this.transactions = this.transactions.concat(other.transactions);
@@ -270,8 +317,9 @@ export class I18nOneLanguage {
      * Keys in the parameter two will overwrite existing key/value pairs in the existing one.
      * 
      * @param two - the javascript object to merge.
+     * @alpha (data type checks?)
      */
-    public mergeItems(two:any) {
+    public mergeItems(two:any) :void {
         // console.log("merge.1",this,two);
         if (two.hasOwnProperty('onelng')) {
             this.onelng = {...this.onelng,...two.onelng};
@@ -290,6 +338,10 @@ export class I18nOneLanguage {
     public getItems() : any {
         return this.onelng;
     }
+    /**
+     * 
+     * @returns a string list of all keys within this key/value pairs object
+     */
     public getKeys() : string[] {
         return Object.keys(this.onelng);
     }
@@ -452,6 +504,27 @@ export class I18nLanguages {
         this.lngs[lngkey].setItem(key,value);
     }
     /**
+     * 
+     * @param lngkey - current language to delete in
+     * @param key - key to delete
+     * 
+     */
+    public deleteItem(lngkey:string,key:string): void {
+        if (!this.lngs.hasOwnProperty(lngkey)) {
+            return; // no action
+        }
+        this.lngs[lngkey].deleteItem(key);
+    }
+    /**
+     * 
+     * @param lngkey language to empty.
+     */
+    public emptyItems(lngkey:string): void {
+        if (this.lngs.hasOwnProperty(lngkey)) {
+            this.lngs[lngkey].emptyItems();
+        }
+    }
+    /**
      * get all items for one language key
      * 
      * @param lngkey - the language key e.g. 'en','de'
@@ -479,6 +552,34 @@ export class I18nLanguages {
         all['defaultLanguage'] = this.defaultLng;
         return all;
     }
+    
+    /**
+     * merge all items with a second javascript object
+     * 
+     * @remarks
+     * Keys in the parameter two will overwrite existing key/value pairs in the existing one.
+     * 
+     * @param lngkey - which language to merge in.
+     * @param other - the OneLanugage or key/value pairs object to merge.
+     * @alpha (data type checks?)
+     */
+    public mergeItems(lngkey:string,other:any) :void {
+        if (this.lngs.hasOwnProperty(lngkey)) {
+            this.lngs[lngkey].mergeItems(other);
+        }
+    }
+    /**
+     * 
+     * @param lngkey the language to get the keys from
+     * @returns a string list of keys.
+     */
+    public getLanguageKeys(lngkey:string) : string[] {
+        if (this.lngs.hasOwnProperty(lngkey)) {
+            return this.lngs[lngkey].getKeys();
+        }
+        return [];
+    }
+
     /**
      * returns the change history for one language key, if any
      * 
