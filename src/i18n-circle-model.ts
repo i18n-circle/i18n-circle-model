@@ -8,7 +8,10 @@
     NO_OP,
     NEW_KEY,
     DEL_KEY,
-    UPDATE_VALUE
+    UPDATE_VALUE,
+    NEW_LANGUAGE,
+    DEL_LANGUAGE,
+    MISMATCH_DEFAULT_LNG
 }
 
 /**
@@ -18,10 +21,50 @@
  */
 export class I18nTranslateAction {
     private actionType : I18nTranslateActionType = I18nTranslateActionType.NO_OP;
+    private sourceMod?:string;
+    private sourceLngKey?:string;
+    private targetMod?:string;
+    private targetLngKey?:string;
     private key?:string;
     private value?:string;
     private constructor(actionType:I18nTranslateActionType) {
         this.actionType = actionType;
+    }
+    public setSourceAndTarget(sourceMod:string,sourceLngKey:string,targetMod:string,targetLngKey:string) {
+        this.sourceMod=sourceMod;
+        this.sourceLngKey = sourceLngKey;
+        this.targetMod = targetMod;
+        this.targetLngKey = targetLngKey;
+    }
+    public toString() :string{
+        var txt : string ='';
+        txt += "["+this.sourceMod+'.'+this.sourceLngKey+"=>"
+            + this.targetMod+'.'+this.targetLngKey+"]: ";
+        switch (this.actionType) {
+            default:
+            case I18nTranslateActionType.NO_OP:
+                txt += "NO_OP"; 
+                break;
+            case I18nTranslateActionType.NEW_KEY:
+                txt += "NEW_KEY"; 
+                txt +='('+this.key+')';
+                break;
+            case I18nTranslateActionType.DEL_KEY:
+                txt += "DEL_KEY"; 
+                txt +='('+this.key+')';
+                break;
+            case I18nTranslateActionType.UPDATE_VALUE:
+                txt += "UPDATE_VALUE"; 
+                txt +='('+this.key+','+this.value+')';
+                break;
+            case I18nTranslateActionType.NEW_LANGUAGE:
+                txt += "NEW_LANGUAGE"; break;
+            case I18nTranslateActionType.DEL_LANGUAGE:
+                txt += "DEL_LANGUAGE"; break;
+            case I18nTranslateActionType.MISMATCH_DEFAULT_LNG:
+                txt += "MISMATCH_DEFAULT_LNG"; break;
+        }
+        return txt;
     }
     public static setupNewKey(key:string):I18nTranslateAction {
         var ta = new I18nTranslateAction(I18nTranslateActionType.NEW_KEY);
@@ -39,6 +82,10 @@ export class I18nTranslateAction {
         ta.value = val;
         return ta;
     }
+    public static setupWithoutKeyOrValue(type:I18nTranslateActionType):I18nTranslateAction {
+        var ta = new I18nTranslateAction(type);
+        return ta;
+    }
 }
 
 /**
@@ -46,10 +93,10 @@ export class I18nTranslateAction {
  * @public
  */
 export class I18nTranslateActions {
-    private sourceMod?:string;
-    private sourceLngKey?:string;
-    private targetMod?:string;
-    private targetLngKey?:string;
+    private sourceMod:string;
+    private sourceLngKey:string;
+    private targetMod:string;
+    private targetLngKey:string;
     private transactions : I18nTranslateAction[]=[];
     /**
      * @constructor for the actions in the target space
@@ -69,6 +116,7 @@ export class I18nTranslateActions {
      */
     public setupNewKey(key:string) {
         var ta = I18nTranslateAction.setupNewKey(key);
+        ta.setSourceAndTarget(this.sourceMod,this.sourceLngKey,this.targetMod,this.targetLngKey);
         this.transactions.push(ta);
     }
     /**
@@ -78,6 +126,7 @@ export class I18nTranslateActions {
      */
     public setupDelKey(key:string) {
         var ta = I18nTranslateAction.setupDelKey(key);
+        ta.setSourceAndTarget(this.sourceMod,this.sourceLngKey,this.targetMod,this.targetLngKey);
         this.transactions.push(ta);
     }
     /**
@@ -88,10 +137,56 @@ export class I18nTranslateActions {
      */
     public setupUpdateValue(key:string,val:string) {
         var ta = I18nTranslateAction.setupUpdateValue(key,val);
+        ta.setSourceAndTarget(this.sourceMod,this.sourceLngKey,this.targetMod,this.targetLngKey);
         this.transactions.push(ta);
     }
+    /**
+     * setupMismatchDefaultLanguage
+     */
+    public setupMismatchDefaultLanguage() {
+        var ta = I18nTranslateAction.setupWithoutKeyOrValue(
+            I18nTranslateActionType.MISMATCH_DEFAULT_LNG);
+        ta.setSourceAndTarget(this.sourceMod,this.sourceLngKey,this.targetMod,this.targetLngKey);
+        this.transactions.push(ta);
+    }
+    /**
+     * setupNewLanguage
+     */
+     public setupNewLanguage() {
+        var ta = I18nTranslateAction.setupWithoutKeyOrValue(
+            I18nTranslateActionType.NEW_LANGUAGE);
+        ta.setSourceAndTarget(this.sourceMod,this.sourceLngKey,this.targetMod,this.targetLngKey);
+        this.transactions.push(ta);
+    }
+    /**
+     * setupDelLanguage
+     */
+     public setupDelLanguage() {
+        var ta = I18nTranslateAction.setupWithoutKeyOrValue(
+            I18nTranslateActionType.DEL_LANGUAGE);
+        ta.setSourceAndTarget(this.sourceMod,this.sourceLngKey,this.targetMod,this.targetLngKey);
+        this.transactions.push(ta);
+    }
+    /**
+     * getTransScript
+     */
+    public getTransScript():string[] {
+        var result : string[] = [];
+        this.transactions.forEach(act => {
+            result.push(act.toString());
+        });
+        return result;
+    }
     public getActions() : I18nTranslateAction[] {
-        return this.transactions; // TODO copy? Object.assign(obj1, obj2);
+        return this.transactions;
+    }
+    public getActionSize() : number {
+        return this.transactions.length;
+    }
+    public appendOther(other:I18nTranslateActions) {
+        if (other.getActionSize()>0) {
+            this.transactions = this.transactions.concat(other.transactions);
+        }
     }
 }
 
@@ -177,7 +272,14 @@ export class I18nOneLanguage {
      * @param two - the javascript object to merge.
      */
     public mergeItems(two:any) {
-        this.onelng = {...this.onelng,...two.onelng};
+        // console.log("merge.1",this,two);
+        if (two.hasOwnProperty('onelng')) {
+            this.onelng = {...this.onelng,...two.onelng};
+        } else {
+            this.onelng = {...this.onelng,...two};
+        }
+        // console.log("merge-2",this);
+        // this.onelng = Object.assign(this.onelng,two.onelng);
         // Object.assign(obj1, obj2);
     }
     /**
@@ -214,7 +316,7 @@ export class I18nOneLanguage {
      * @param targetmod - the module we are operating in.
      * @param targetlng - the language key, wa are operating in
      * @param valueFlag - if true, also the values are compared if true only keys are compared
-     * @return an Object of I18nTranslateActions
+     * @returns an Object of I18nTranslateActions
      */
     public comparePairs(srcmod:string,srclng:string,target:I18nOneLanguage,targetmod:string,targetlng:string,valueFlag:boolean=false) : I18nTranslateActions {
         var tal = new I18nTranslateActions(srcmod,srclng,targetmod,targetlng);
@@ -222,7 +324,7 @@ export class I18nOneLanguage {
             if (this.hasKey(key) && !target.hasKey(key)) {
                 tal.setupNewKey(key);
             } else if (valueFlag && this.hasKey(key) && this.onelng[key] != target.getItem(key)) {
-                tal.setupUpdateValue(key,target.getItem(key));
+                tal.setupUpdateValue(key,this.getItem(key));
             }
         }
         var tarr = target.getKeys()
@@ -258,8 +360,10 @@ export class I18nLanguages {
      * @param lngmap - the javascript object to initialize.
      */
     public addLanguage(lngkey:string,lngmap:any) {
+        // console.log("add_language-1",lngkey,lngmap,this.lngs);
         if (this.lngs.hasOwnProperty(lngkey)) {
             this.lngs[lngkey].mergeItems(lngmap);
+            // console.log("add_language-2",this.lngs);
         } else {
             this.lngs[lngkey] = new I18nOneLanguage(lngmap);
         }
@@ -276,7 +380,7 @@ export class I18nLanguages {
             if (allLanguages.hasOwnProperty(this.defaultLng)) {
                 this.addLanguage(this.defaultLng,allLanguages[this.defaultLng]);
             } else {
-                return; // Error: default language missing.
+                this.addLanguage(this.defaultLng,{});
             }
             for (var lkey in allLanguages) {
                 if (allLanguages.hasOwnProperty(lkey)
@@ -288,6 +392,22 @@ export class I18nLanguages {
         }
     }
     /**
+     * hasLanguage checks if a language key is existent
+     */
+    public hasLanguage(lngkey:string): boolean {
+        return this.lngs.hasOwnProperty(lngkey);
+    }
+    /**
+     * hasKey checks if the language and the key is existent in that language.
+     * 
+     * @param lngkey - The language key to search for
+     * @param key - The key in that language.
+     */
+    public hasKey(lngkey:string,key:string) : boolean {
+        return this.lngs.hasOwnProperty(lngkey) 
+            && this.lngs[lngkey].hasKey(key);
+    }
+    /**
      * get one item via lngkey and key
      * @param lngkey - the lngkey e.g 'en','de'
      * @param key - the key text in the default language
@@ -295,7 +415,7 @@ export class I18nLanguages {
      * @returns the found value or the key if not existent.
      */
     public getItem(lngkey:string,key:string) : string {
-        if (this.lngs.hasOwnProperty(lngkey)) {
+        if (this.hasKey(lngkey,key)) {
             return this.lngs[lngkey].getItem(key);
         } else {
             return key;
@@ -311,7 +431,7 @@ export class I18nLanguages {
      * @returns the found value or the key if not existent.
      */
     public getOrCreateItem(lngkey:string,key:string) : string {
-        if (this.lngs.hasOwnProperty(lngkey)) {
+        if (this.hasKey(lngkey,key)) {
             return this.lngs[lngkey].getItem(key);
         } else {
             this.lngs[this.defaultLng].setItem(key,key);
@@ -325,7 +445,7 @@ export class I18nLanguages {
      * @param key - the key (text in default language)
      * @param value - The text in the current language.
      */
-    public setItem(lngkey:string,key:string,value:string) {
+    public setItem(lngkey:string,key:string,value:string): void {
         if (!this.lngs.hasOwnProperty(lngkey)) {
             this.lngs[lngkey] = new I18nOneLanguage({});
         }
@@ -373,6 +493,62 @@ export class I18nLanguages {
         } else {
             return [];
         }
+    }
+    /**
+     * compares two collections of I18nLanguages and produces an action list
+     * @param srcmod module name of this source
+     * @param target target langauges to compare with
+     * @param targetmod module name of that target
+     * @returns list of Transactions
+     */
+    public compareLanguages(srcmod:string,target:I18nLanguages,targetmod:string) : I18nTranslateActions {
+        var result :I18nTranslateActions = new I18nTranslateActions(
+            srcmod,this.defaultLng,targetmod,target.defaultLng);
+        ;
+        var tal : I18nTranslateActions;
+        if (this.defaultLng != target.defaultLng) {
+            result.setupMismatchDefaultLanguage();
+            return result;
+        }
+        // 1) compare default langages with values.
+        var l1 : I18nOneLanguage = this.lngs[this.defaultLng];
+        var l2 : I18nOneLanguage = target.lngs[this.defaultLng];
+        tal = l2.comparePairs(srcmod,this.defaultLng,l1,targetmod,this.defaultLng,true);
+        result.appendOther(tal);
+        // 2) compare keys for all target languages:
+        for (var lngkey in target.lngs) {
+            if (target.hasLanguage(lngkey) && lngkey != this.defaultLng) {
+                if (!this.hasLanguage(lngkey)) { // 2a: new languages
+                    tal = new I18nTranslateActions(srcmod,this.defaultLng,targetmod,lngkey);
+                    tal.setupNewLanguage();
+                    result.appendOther(tal);
+                    l1 = this.lngs[this.defaultLng];
+                    l2 = target.lngs[lngkey]; // 2b: new keys from defaultlng
+                    tal = l1.comparePairs(srcmod,this.defaultLng,l2,targetmod,lngkey,false);
+                    result.appendOther(tal);
+                } else {
+                    l1 = this.lngs[this.defaultLng];
+                    l2 = target.lngs[lngkey]; // 2b: new keys from defaultlng
+                    tal = l2.comparePairs(srcmod,this.defaultLng,l1,targetmod,lngkey,false);
+                    result.appendOther(tal);
+                }
+                if (this.hasLanguage(lngkey)) {
+                    l1 = this.lngs[lngkey]; // 2c update keys and values same lngkey
+                    l2 = target.lngs[lngkey];
+                    tal = l2.comparePairs(srcmod,lngkey,l1,targetmod,lngkey,true);
+                    result.appendOther(tal);
+                }
+            }
+        }
+        // 3) delete no longer existing languages:
+        for (var lngkey in this.lngs) {
+            if (this.hasLanguage(lngkey) && !target.hasLanguage(lngkey)) {
+                tal = new I18nTranslateActions(srcmod,this.defaultLng,targetmod,lngkey);
+                tal.setupDelLanguage();
+                result.appendOther(tal);
+            }
+        }
+        return result;
     }
 }
 
