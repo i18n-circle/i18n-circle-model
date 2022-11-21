@@ -1,4 +1,3 @@
-
 /**
  * @enum for the I18nTranslateAction.
  * 
@@ -722,7 +721,7 @@ export class I18nOneModule {
      * @param data a saved javascript object to initialize the module.
      * @returns the module on success or an error message on failure.
      */
-    public static createFromData(data:any) : I18nOneModule|string {
+    public static createFromData(modref:string,data:any) : I18nOneModule {
         var mod : I18nOneModule;
         if (data.hasOwnProperty("internalName")) {
             mod = new I18nOneModule(
@@ -737,7 +736,11 @@ export class I18nOneModule {
                 data['createFlag']||true,
                 data['languages']||null);
         } else {
-            return "parameter error in internalName/externalName";
+            mod = new I18nOneModule(
+                modref,
+                data['filePath']||'',
+                data['createFlag']||true,
+                data['languages']||null);
         }
         return mod;
     }
@@ -765,9 +768,9 @@ export class I18nOneModule {
      * 
      * @returns the found value or the key if not existent.
      */
-    public getOrCreateItem(lngkey:string,key:string) : string {
+    public getOrCreateItem(lngkey:string,key:string,forceCreate:boolean=false) : string {
         if (this.languages != null) {
-            if (this.createFlag) {
+            if (forceCreate || this.createFlag) {
                 return this.languages.getOrCreateItem(lngkey,key);
             } else {
                 return this.languages.getItem(lngkey,key);
@@ -781,10 +784,15 @@ export class I18nOneModule {
      * @param lngkey - the language key e.g. 'en'
      * @param lngmap - the javascript object to initialize.
      */
-     public addLanguage(lngkey:string,lngmap:any) {
-        if (this.languages != null) {
-            this.languages.addLanguage(lngkey,lngmap);
+     public addLanguage(lngkey:string,lngmap:any,forceCreate:boolean=false) {
+        if (this.languages == null) {
+            if (this.createFlag || forceCreate) {
+                this.languages = new I18nLanguages({});
+            } else {
+                return;
+            }
         }
+        this.languages.addLanguage(lngkey,lngmap);
     }
     /**
      * hasLanguage checks if a language key is existent
@@ -902,5 +910,55 @@ export class I18nOneModule {
         } else {
             return null;
         }
+    }
+}
+
+export class I18nCircleModel {
+    private modules : any = {};
+    private createFlag : boolean = true;
+
+    public addModule(modref:string,moddata:any) : I18nOneModule {
+        var mod :I18nOneModule = I18nOneModule.createFromData(modref,moddata);
+        this.modules[modref] = mod;
+        return mod;
+    }
+
+    public addLanguage(modref:string,lngkey:string,lngdata:any) :void {
+        var mod : I18nOneModule;
+        if (this.modules.hasOwnProperty(modref)) {
+            mod = this.modules[modref];
+        } else {
+            if (this.createFlag) {
+                mod = this.addModule(modref,{});
+            } else {
+                return;
+            }
+        }
+        mod.addLanguage(lngkey,lngdata,this.createFlag);
+    }
+
+    public getModuleReferences():string[] {
+        return this.modules.keys();
+    }
+
+    public getModules():I18nOneModule[] {
+        return this.modules;
+    }
+
+    public get(modref:string,lngkey:string,key:string) : string {
+        var mod : I18nOneModule;
+        if (this.modules.hasOwnProperty(modref)) {
+            mod = this.modules[modref];
+            return mod.getOrCreateItem(lngkey,key,this.createFlag);
+        }
+        if (!this.createFlag) {
+            return key;
+        }
+        mod = I18nOneModule.createFromData(modref,{});
+        if (typeof mod !== 'string') {
+            mod.addLanguage(lngkey,{});
+            return mod.getOrCreateItem(lngkey,key);
+        }
+        return key;
     }
 }
