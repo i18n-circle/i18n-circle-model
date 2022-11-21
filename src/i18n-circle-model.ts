@@ -1,6 +1,13 @@
 import { Subject } from "rxjs";
 
 
+export enum I18nOperationMode {
+    NO_OP,
+    DEFAULT_LNG,
+    NEW_KEYS_FROM_DEFAULT,
+    UPDATE_VALUES_IN_ONE_LNG
+}
+
 /**
  * @enum for the I18nTranslateAction.
  * 
@@ -71,7 +78,7 @@ export class I18nTranslateAction {
                 break;
             case I18nTranslateActionType.NEW_KEY:
                 txt += "NEW_KEY"; 
-                txt +='('+this.key+')';
+                txt +='('+this.key+','+this.value+')';
                 break;
             case I18nTranslateActionType.DEL_KEY:
                 txt += "DEL_KEY"; 
@@ -140,11 +147,16 @@ export class I18nTranslateAction {
  * @public
  */
 export class I18nTranslateActions {
+    static deleteKeys() {
+        this.tmpDelKeys = {};
+    }
     private sourceMod:string;
     private sourceLngKey:string;
     private targetMod:string;
     private targetLngKey:string;
     private transactions : I18nTranslateAction[]=[];
+    private static tmpDelKeys:any={};
+    private static tmpAddKeys:any={};
     /**
      * @constructor for the actions in the target space
      * @param mod - module name
@@ -161,9 +173,21 @@ export class I18nTranslateActions {
      *
      * @param key - the key (text in default language)
      */
-    public setupNewKey(key:string,value:string) : void {
+    public setupNewKey(key:string,value:string,opMode:I18nOperationMode) : void {
         var ta = I18nTranslateAction.setupNewKey(key,value);
         ta.setSourceAndTarget(this.sourceMod,this.sourceLngKey,this.targetMod,this.targetLngKey);
+        switch (opMode) {
+            case I18nOperationMode.DEFAULT_LNG:
+                I18nTranslateActions.tmpAddKeys[key]=true;
+                break;
+            case I18nOperationMode.NEW_KEYS_FROM_DEFAULT:
+            case I18nOperationMode.UPDATE_VALUES_IN_ONE_LNG:
+                // console.log("NewKey",ta,I18nTranslateActions.tmpDelKeys);
+                if (I18nTranslateActions.tmpDelKeys.hasOwnProperty(key)) {
+                    return;
+                }
+                break;
+        }
         this.transactions.push(ta);
     }
     /**
@@ -171,9 +195,21 @@ export class I18nTranslateActions {
      *
      * @param key - the key (text in default language)
      */
-    public setupDelKey(key:string) : void {
+    public setupDelKey(key:string,opMode:I18nOperationMode) : void {
         var ta = I18nTranslateAction.setupDelKey(key);
         ta.setSourceAndTarget(this.sourceMod,this.sourceLngKey,this.targetMod,this.targetLngKey);
+        switch (opMode) {
+            case I18nOperationMode.DEFAULT_LNG:
+                I18nTranslateActions.tmpDelKeys[key]=true;
+                // console.log("delKey-default",ta,I18nTranslateActions.tmpDelKeys);
+                break; 
+            case I18nOperationMode.UPDATE_VALUES_IN_ONE_LNG:
+            case I18nOperationMode.NEW_KEYS_FROM_DEFAULT:
+                if (I18nTranslateActions.tmpAddKeys.hasOwnProperty(key)) {
+                    return;
+                }
+                break;
+        }
         this.transactions.push(ta);
     }
     /**
@@ -182,9 +218,17 @@ export class I18nTranslateActions {
      * @param key - the key (text in default language)
      * @param value - The text in the target space language.
      */
-    public setupUpdateValue(key:string,val:string) :void {
+    public setupUpdateValue(key:string,val:string,opMode:I18nOperationMode) :void {
         var ta = I18nTranslateAction.setupUpdateValue(key,val);
         ta.setSourceAndTarget(this.sourceMod,this.sourceLngKey,this.targetMod,this.targetLngKey);
+        switch (opMode) {
+            case I18nOperationMode.DEFAULT_LNG:
+                break;; 
+            case I18nOperationMode.UPDATE_VALUES_IN_ONE_LNG:
+                break;
+            case I18nOperationMode.NEW_KEYS_FROM_DEFAULT:
+                return;
+        }
         this.transactions.push(ta);
     }
     /**
@@ -450,20 +494,23 @@ export class I18nOneLanguage {
      * @param valueFlag - if true, also the values are compared if true only keys are compared
      * @returns an Object of I18nTranslateActions
      */
-    public comparePairs(srcmod:string,srclng:string,target:I18nOneLanguage,targetmod:string,targetlng:string,valueFlag:boolean=false) : I18nTranslateActions {
+    public comparePairs(srcmod:string,srclng:string,target:I18nOneLanguage,targetmod:string,targetlng:string,opMode:number) : I18nTranslateActions {
         var tal = new I18nTranslateActions(srcmod,srclng,targetmod,targetlng);
+        var valueFlag = false;
+        var keyforwarding = false;
+        var keyBackwarding = false;
         for (var key in this.onelng) {
             if (this.hasKey(key) && !target.hasKey(key)) {
-                tal.setupNewKey(key,target.getItem(key));
-            } else if (valueFlag && this.hasKey(key) && this.onelng[key] != target.getItem(key)) {
-                tal.setupUpdateValue(key,this.getItem(key));
+                tal.setupNewKey(key,target.getItem(key),opMode);
+            } else if (this.hasKey(key) && this.onelng[key] != target.getItem(key)) {
+                tal.setupUpdateValue(key,this.getItem(key),opMode);
             }
         }
         var tarr = target.getKeys()
         for (var ix = 0;ix<tarr.length;ix++) {
             var rkey = tarr[ix];
             if (target.hasKey(rkey) && !this.hasKey(rkey)) {
-                tal.setupDelKey(rkey);
+                tal.setupDelKey(rkey,opMode);
             }
         }
         return tal;
@@ -685,9 +732,9 @@ export class I18nLanguages {
      * @returns list of Transactions
      */
     public compareLanguages(srcmod:string,target:I18nLanguages,targetmod:string) : I18nTranslateActions {
+        I18nTranslateActions.deleteKeys();
         var result :I18nTranslateActions = new I18nTranslateActions(
             srcmod,this.defaultLng,targetmod,target.defaultLng);
-        ;
         var tal : I18nTranslateActions;
         if (this.defaultLng != target.defaultLng) {
             result.setupMismatchDefaultLanguage();
@@ -696,7 +743,8 @@ export class I18nLanguages {
         // 1) compare default langages with values.
         var l1 : I18nOneLanguage = this.lngs[this.defaultLng];
         var l2 : I18nOneLanguage = target.lngs[this.defaultLng];
-        tal = l2.comparePairs(srcmod,this.defaultLng,l1,targetmod,this.defaultLng,true);
+        tal = l2.comparePairs(srcmod,this.defaultLng,l1,targetmod,this.defaultLng,
+            I18nOperationMode.DEFAULT_LNG);
         result.appendOther(tal);
         // 2) compare keys for all target languages:
         for (var lngkey in target.lngs) {
@@ -707,18 +755,21 @@ export class I18nLanguages {
                     result.appendOther(tal);
                     l1 = this.lngs[this.defaultLng];
                     l2 = target.lngs[lngkey]; // 2b: new keys from defaultlng
-                    tal = l1.comparePairs(srcmod,this.defaultLng,l2,targetmod,lngkey,false);
+                    tal = l1.comparePairs(srcmod,this.defaultLng,l2,targetmod,lngkey,
+                        I18nOperationMode.NEW_KEYS_FROM_DEFAULT);
                     result.appendOther(tal);
                 } else {
                     l1 = this.lngs[this.defaultLng];
                     l2 = target.lngs[lngkey]; // 2b: new keys from defaultlng
-                    tal = l2.comparePairs(srcmod,this.defaultLng,l1,targetmod,lngkey,false);
+                    tal = l1.comparePairs(srcmod,this.defaultLng,l2,targetmod,lngkey,
+                        I18nOperationMode.NEW_KEYS_FROM_DEFAULT);
                     result.appendOther(tal);
                 }
                 if (this.hasLanguage(lngkey)) {
                     l1 = this.lngs[lngkey]; // 2c update keys and values same lngkey
                     l2 = target.lngs[lngkey];
-                    tal = l2.comparePairs(srcmod,lngkey,l1,targetmod,lngkey,true);
+                    tal = l1.comparePairs(srcmod,lngkey,l2,targetmod,lngkey,    
+                        I18nOperationMode.UPDATE_VALUES_IN_ONE_LNG);
                     result.appendOther(tal);
                 }
             }
@@ -733,6 +784,17 @@ export class I18nLanguages {
         }
         return result;
     }
+    /**
+     * 
+     * @param modref the external model reference to use
+     * @returns a list of actions to achieve consistency.
+     */
+    public checkConsistency(modref:string): I18nTranslateActions {
+        return this.compareLanguages(modref,this,modref);
+    }
+
+    
+
 }
 
 /**
@@ -791,11 +853,11 @@ export class I18nOneModule {
         if (spl.length > 1 && spl[1].match(/^V[0-9]+\.[0-9]+\.+[0-9]/)) {
             this.semanticVersion = spl[1];
             if (spl.length > 2 && spl[2].match(/^[0-9]+$/)) {
-                this.internalVersion = Number.parseInt(spl[1]);
+                this.internalVersion = Number.parseInt(spl[2]);
             } else {
                 this.internalVersion = 1;
             }
-        } else if (spl[1].match(/^[0-9]+$/)) {
+        } else if (spl.length > 1 && spl[1].match(/^[0-9]+$/)) {
             this.semanticVersion = 'V0.0.1';
             this.internalVersion = Number.parseInt(spl[1]);
         } else {
@@ -846,7 +908,9 @@ export class I18nOneModule {
      */
     public getModule() : any {
         return {
-            internalName: this.internalName,// TODO versioning?
+            internalName: this.internalName,
+            semanticVersion: this.semanticVersion,
+            internalVersion: this.internalVersion,
             filepath: this.filepath,
             createFlag: this.createFlag,
             languages: (this.languages==null) ? {} : this.languages.getAllItems()
@@ -930,6 +994,7 @@ export class I18nOneModule {
     /**
      * 
      * @param lngkey language to empty.
+     * @alpha TODO: add TranslateAction/subject...
      */
     public emptyItems(lngkey:string): void {
         if (this.languages != null) {
@@ -962,7 +1027,7 @@ export class I18nOneModule {
      * 
      * @param lngkey - which language to merge in.
      * @param other - the OneLanugage or key/value pairs object to merge.
-     * @alpha (data type checks?)
+     * @alpha (data type checks?, add TransalteActions/Subject
      */
     public mergeItems(lngkey:string,other:any) :void {
         if (this.languages != null) {
@@ -990,6 +1055,14 @@ export class I18nOneModule {
         } else {
             return null;
         }
+    }
+    /**
+     * 
+     * @param modref the external model reference to use
+     * @returns a list of actions to achieve consistency.
+     */
+    public checkConsistency(modref:string): I18nTranslateActions {
+        return this.languages.compareLanguages(modref,this.languages,modref);
     }
 }
 
