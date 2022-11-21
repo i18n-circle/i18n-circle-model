@@ -10,25 +10,20 @@ describe('I18nOneLanguage', () => {
       expect(one).toBeTruthy();
       expect(Object.keys(one.getItems()).length).toBe(0);
       expect(one.getKeys().length).toBe(0);
-      expect(one.getHistory(false).length).toBe(0);
       expect(one.getItem("test1")).toBe('test1');
       expect(one.hasKey("test1")).toBeFalsy();
       one.setItem("test1","test1-val");
       expect(Object.keys(one.getItems()).length).toBe(1);
       expect(one.getKeys().length).toBe(1);
-      expect(one.getHistory(false).length).toBe(1);
       expect(one.getItem("test1")).toBe('test1-val');
       expect(one.hasKey("test1")).toBeTruthy();
       one.setItem("test1","test1-val");
       expect(Object.keys(one.getItems()).length).toBe(1);
       expect(one.getKeys().length).toBe(1);
-      expect(one.getHistory(false).length).toBe(1);
       expect(one.getItem("test1")).toBe('test1-val');
       one.setItem("test1","test1-val-update");
       expect(Object.keys(one.getItems()).length).toBe(1);
       expect(one.getKeys().length).toBe(1);
-      expect(one.getHistory(true).length).toBe(2);
-      expect(one.getHistory(false).length).toBe(0);
       expect(one.getItem("test1")).toBe('test1-val-update');
       expect(one.hasKey("test1")).toBeTruthy();
       one.deleteItem("test1");
@@ -39,12 +34,9 @@ describe('I18nOneLanguage', () => {
       one.setItem("test1","test2-val");
       expect(Object.keys(one.getItems()).length).toBe(1);
       expect(one.getKeys().length).toBe(1);
-      expect(one.getHistory(true).length).toBe(1);
-      expect(one.getHistory(false).length).toBe(0);
       expect(one.getItem("test1")).toBe('test2-val');
       expect(one.hasKey("test1")).toBeTruthy();
       one.emptyItems();
-      expect(one.getHistory(false).length).toBe(0);
       expect(one.getKeys().length).toBe(0);
       expect(Object.keys(one.getItems()).length).toBe(0);
       expect(one.getItem("test1")).toBe('test1');
@@ -59,7 +51,6 @@ describe('I18nOneLanguage', () => {
     one.setItem("test3","test3-val1");
     one.setItem("test4","test4-val1");
     one.setItem("test5","test5-val1");
-    expect(one.getHistory(true).length).toBe(5);
     expect(one.getKeys().length).toBe(5);
     expect(Object.keys(one.getItems()).length).toBe(5);
     two.setItem("test6","test6-val2");
@@ -67,12 +58,10 @@ describe('I18nOneLanguage', () => {
     two.setItem("test8","test8-val2");
     two.setItem("test2","test2-val2");
     two.setItem("test4","test4-val2");
-    expect(two.getHistory(true).length).toBe(5);
     expect(two.getKeys().length).toBe(5);
     expect(Object.keys(two.getItems()).length).toBe(5);
     one.mergeItems(two);
     // console.log(one);
-    expect(one.getHistory(true).length).toBe(0);
     expect(one.getKeys().length).toBe(8);
     expect(Object.keys(one.getItems()).length).toBe(8);
     expect(one.getItem("test1")).toBe('test1-val1');
@@ -85,7 +74,6 @@ describe('I18nOneLanguage', () => {
     expect(one.getItem("test8")).toBe('test8-val2');
     // init with value field from one to three.
     let three = new I18nOneLanguage(one.getItems());
-    expect(three.getHistory(false).length).toBe(0);
     expect(three.getKeys().length).toBe(8);
     expect(Object.keys(three.getItems()).length).toBe(8);
     expect(three.getItem("test1")).toBe('test1-val1');
@@ -97,11 +85,23 @@ describe('I18nOneLanguage', () => {
     expect(three.getItem("test7")).toBe('test7-val2');
     expect(three.getItem("test8")).toBe('test8-val2');
     three.deleteItem('test8');
-    expect(three.getHistory(false).length).toBe(0);
     expect(three.getKeys().length).toBe(7);
     expect(Object.keys(three.getItems()).length).toBe(7);
     expect(three.getItem("test8")).toBe('test8');
     expect(  one.getItem("test8")).toBe('test8-val2');
+    let cache = three.getLanguageCache('test','test',null);
+    expect(cache?.getSize()).toBe(7);
+    expect(cache.get("test1")).toBe('test1-val1');
+    expect(cache.get("test2")).toBe('test2-val2');
+    expect(cache.get("test3")).toBe('test3-val1');
+    expect(cache.get("test4")).toBe('test4-val2');
+    expect(cache.get("test5")).toBe('test5-val1');
+    expect(cache.get("test6")).toBe('test6-val2');
+    expect(cache.get("test7")).toBe('test7-val2');
+    expect(cache?.getSize()).toBe(7);
+    expect(cache.get("test9-notexiting")).toBe('test9-notexiting');
+    expect(cache?.getSize()).toBe(7); // without i18n!!!
+    expect(cache?.hasKey('test9-notexiting')).toBeFalsy(); 
   });
   test('I18nOneLanguage-Transactions', () => {
     let one = new I18nOneLanguage({});
@@ -113,7 +113,6 @@ describe('I18nOneLanguage', () => {
     one.setItem("test3","test3-val1");
     one.setItem("test4","test4-val1");
     one.setItem("test5","test5-val1");
-    expect(one.getHistory(true).length).toBe(5);
     expect(one.getKeys().length).toBe(5);
     expect(Object.keys(one.getItems()).length).toBe(5);
     two.setItem("test6","test6-val2");
@@ -121,7 +120,6 @@ describe('I18nOneLanguage', () => {
     two.setItem("test8","test8-val2");
     two.setItem("test2","test2-val2");
     two.setItem("test4","test4-val2");
-    expect(two.getHistory(true).length).toBe(5);
     expect(two.getKeys().length).toBe(5);
     expect(Object.keys(two.getItems()).length).toBe(5);
     let transact : I18nTranslateActions = two.comparePairs(
@@ -230,19 +228,13 @@ describe('I18nLanguages', () => {
       expect(oneLS.getOrCreateItem('en','logon')).toBe('logon');
       expect(oneLS.hasKey('en','register')).toBeFalsy();
       expect(oneLS.hasKey('de','register')).toBeFalsy();
-      expect(oneLS.getHistory('en',false).length).toBe(0);
-      expect(oneLS.getHistory('de',false).length).toBe(0);
 
       expect(oneLS.getOrCreateItem('de','register')).toBe('register');
-      expect(oneLS.getHistory('en',false).length).toBe(1);
-      expect(oneLS.getHistory('de',false).length).toBe(0);
       expect(oneLS.hasKey('en','register')).toBeTruthy();
       expect(oneLS.hasKey('de','register')).toBeFalsy();
       expect(oneLS.getItem('de','register')).toBe("register");
 
       oneLS.setItem('de','register','Registrieren');
-      expect(oneLS.getHistory('en',false).length).toBe(1);
-      expect(oneLS.getHistory('de',false).length).toBe(1);
       expect(oneLS.hasKey('de','register')).toBeTruthy();
       expect(oneLS.getItem('de','register')).toBe("Registrieren");
       expect(oneLS.hasKey('fr','register')).toBeFalsy();
@@ -252,17 +244,11 @@ describe('I18nLanguages', () => {
       expect(oneLS.hasLanguage('fr')).toBeFalsy();
       expect(oneLS.hasKey('fr','register')).toBeFalsy();
       expect(oneLS.getItem('fr','register')).toBe("register");
-      expect(oneLS.getHistory('en',true).length).toBe(1);
-      expect(oneLS.getHistory('fr',true).length).toBe(0);
-      expect(oneLS.getHistory('de',true).length).toBe(1);
   
       oneLS.setItem('fr','register','enregistrer');
       expect(oneLS.hasLanguage('fr')).toBeTruthy();
       expect(oneLS.hasKey('fr','register')).toBeTruthy();
       expect(oneLS.getItem('fr','register')).toBe("enregistrer");
-      expect(oneLS.getHistory('en',true).length).toBe(0);
-      expect(oneLS.getHistory('fr',true).length).toBe(1);
-      expect(oneLS.getHistory('de',true).length).toBe(0);
       // console.log('220',JSON.stringify(oneLS.getAllItems(),undefined,2));
     });
     
@@ -285,6 +271,37 @@ describe('I18nLanguages', () => {
     expect(actlist[7]).toBe("[mod1.en=>mod2.fr]: NEW_KEY(signin)");
     expect(actlist[8]).toBe("[mod1.en=>mod2.fr]: DEL_KEY(hello)");
     expect(actlist[9]).toBe("[mod1.en=>mod2.es]: DEL_LANGUAGE");
+  });
+  test('I18nLanguages-I18nCache', () => {
+    let twoLS = new I18nLanguages(ls02);
+    expect(twoLS).toBeTruthy();
+    let cache = twoLS.getLanguageCache('test','en',null);
+    expect(cache?.getSize()).toBe(3);
+    expect(cache?.hasKey('logon')).toBeTruthy();
+    expect(cache?.hasKey('logout')).toBeTruthy();
+    expect(cache?.hasKey('register')).toBeTruthy();
+    expect(cache?.get('logon')).toBe("logon");
+    expect(cache?.get('logout')).toBe("logout");
+    expect(cache?.get('register')).toBe("register");
+    twoLS.deleteItem('en','register');
+    expect(cache?.getSize()).toBe(2);
+    expect(cache?.hasKey('register')).toBeFalsy(); // test auto update
+    expect(cache?.get('change password')).toBe("change password");
+    expect(cache?.hasKey('change password')).toBeFalsy(); 
+      // no auto update, because no i18n in cache!
+    expect(cache?.getSize()).toBe(2);
+    cache = twoLS.getLanguageCache('test','de',null);
+    expect(cache?.getSize()).toBe(2);
+    expect(cache?.get('logon')).toBe("Anmelden");
+    expect(cache?.get('logout')).toBe("Verlassem");
+    twoLS.setItem("de","logout","Abmelden");
+    expect(cache?.get('logout')).toBe("Abmelden");// test auto update
+    expect(cache?.getSize()).toBe(2);
+    cache = twoLS.getLanguageCache('test','fr',null);
+    expect(cache?.getSize()).toBe(2);
+    expect(cache?.get('logon')).toBe("entrer");
+    expect(cache?.get('hello')).toBe("bonjour");
+    expect(cache?.getSize()).toBe(2);
   });
 });
   

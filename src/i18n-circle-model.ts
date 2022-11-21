@@ -1,3 +1,6 @@
+import { Subject } from "rxjs";
+
+
 /**
  * @enum for the I18nTranslateAction.
  * 
@@ -19,6 +22,12 @@
  * @public
  */
 export class I18nTranslateAction {
+    public getKey():string|undefined {
+        return this.key;
+    }
+    public getValue():string|undefined {
+        return this.value;
+    }
     private actionType : I18nTranslateActionType = I18nTranslateActionType.NO_OP;
     private sourceMod?:string;
     private sourceLngKey?:string;
@@ -28,6 +37,9 @@ export class I18nTranslateAction {
     private value?:string;
     private constructor(actionType:I18nTranslateActionType) {
         this.actionType = actionType;
+    }
+    public queryActionType() : I18nTranslateActionType {
+        return this.actionType
     }
     /**
      * sets the source and target form this action.
@@ -81,11 +93,13 @@ export class I18nTranslateAction {
     /**
      * 
      * @param key the key to add
+     * @param val the value to update
      * @returns the NewKey-action
      */
-    public static setupNewKey(key:string):I18nTranslateAction {
+    public static setupNewKey(key:string,val:string):I18nTranslateAction {
         var ta = new I18nTranslateAction(I18nTranslateActionType.NEW_KEY);
         ta.key = key;
+        ta.value = val;
         return ta;
     }
     /**
@@ -147,8 +161,8 @@ export class I18nTranslateActions {
      *
      * @param key - the key (text in default language)
      */
-    public setupNewKey(key:string) : void {
-        var ta = I18nTranslateAction.setupNewKey(key);
+    public setupNewKey(key:string,value:string) : void {
+        var ta = I18nTranslateAction.setupNewKey(key,value);
         ta.setSourceAndTarget(this.sourceMod,this.sourceLngKey,this.targetMod,this.targetLngKey);
         this.transactions.push(ta);
     }
@@ -236,6 +250,69 @@ export class I18nTranslateActions {
     }
 }
 
+/**
+ * this class contains all key and values for one specifc module in a specifc language.
+ * This cache provides a program module a direct access to the values without
+ * the nested calls from the other objects.
+ */
+export class I18nCache {
+    private i18n : I18nCircleModel|null = null; // is null when no createflag
+    private modref: string='';
+    private lngkey: string= '';
+    private lngmap:any={};
+
+    /**
+     * 
+     * @param modref the module reference
+     * @param lngkey the language key
+     * @param onelng the key value javascript object
+     * @param i18nCircle if not null, it's an active createflag
+     */
+    constructor(modref:string,lngkey:string,onelng:any,
+            i18nCircle:I18nCircleModel|null,subject:Subject<I18nTranslateAction>) {
+        this.modref = modref;
+        this.lngkey = lngkey;
+        this.lngmap = onelng;
+        this.i18n = i18nCircle;
+        subject.subscribe((action:I18nTranslateAction)=>{
+            var key = action.getKey();
+            var value = action.getValue();
+            switch(action.queryActionType()) {
+                case I18nTranslateActionType.UPDATE_VALUE:
+                case I18nTranslateActionType.NEW_KEY:
+                    if (typeof key === 'string' && typeof value === 'string') {
+                        this.lngmap[key] = value;
+                    }
+                    return;
+                case I18nTranslateActionType.DEL_KEY:
+                    if (typeof key === 'string') {
+                        delete this.lngmap[key];
+                    }
+                    return;
+            }
+        })
+    }
+    /**
+     * 
+     * @param key the key in the key/value map.
+     * @returns the value if found or the key if not
+     */
+    public get(key:string) : string {
+        if (this.lngmap.hasOwnProperty(key)) {
+            return this.lngmap[key];
+        }
+        if (this.i18n != null) {
+            return this.i18n.get(this.modref,this.lngkey,key);
+        }
+        return key;
+    }
+    public hasKey(key:string) : boolean {
+        return this.lngmap.hasOwnProperty(key);
+    }
+    public getSize() : number {
+        return Object.keys(this.lngmap).length;
+    }
+}
 
 /**
  * @class 
@@ -244,7 +321,18 @@ export class I18nTranslateActions {
  */
 export class I18nOneLanguage {
     private onelng :any = {};
-    private history:string[]=[];
+    private subject:Subject<I18nTranslateAction>;
+
+    /**
+     * 
+     * @param modref the module reference
+     * @param lngkey the language key
+     * @param i18n i not null, then new key will be created in the default language
+     * @returns A new I18nCache 
+     */
+    public getLanguageCache(modref:string,lngkey:string,i18n:I18nCircleModel|null):I18nCache {
+        return new I18nCache(modref,lngkey,this.onelng,i18n,this.subject);
+    }
     
     /**
      * Sets a key/value pair, if not existent and tracks a history of keys.
@@ -253,11 +341,16 @@ export class I18nOneLanguage {
      * @param value - The text in the current language.
      */
     public setItem(key:string,value:string) {
-        if (this.onelng.hasOwnProperty(key) && this.onelng[key]==value) {
+        var existFlag:boolean = this.onelng.hasOwnProperty(key);
+        var action:I18nTranslateAction;
+        if (existFlag && this.onelng[key]==value) {
             return; // no change ==> no history!!
         }
         this.onelng[key] = value;
-        this.history.push(key);
+        action = existFlag 
+               ? I18nTranslateAction.setupUpdateValue(key,value)
+               : I18nTranslateAction.setupNewKey(key,value);
+        this.subject.next(action);
     }
     /**
      * Gets the value of a key/value pair, if existent or key targetwise.
@@ -287,16 +380,18 @@ export class I18nOneLanguage {
      */
     public deleteItem(key:string) {
         delete this.onelng[key];
+        var action : I18nTranslateAction = 
+            I18nTranslateAction.setupDelKey(key);
+        this.subject.next(action);
     }
     /**
      * reset to an empty data set
      */
     public emptyItems() {
         this.onelng = {};
-        this.history = [];
     }
     /**
-     * set all items with an javascript oject e.g. from a file
+     * set all items with an javascript object e.g. from a file
      * 
      * @param one - the javascript object to read.
      */
@@ -304,7 +399,7 @@ export class I18nOneLanguage {
         if (typeof one === 'object' && one !== null) {
             for (let key in one) {
                if (one.hasOwnProperty(key)) {
-                  this.onelng[key] = one[key];
+                  this.setItem(key,one[key]);
                }
             }
         }
@@ -345,20 +440,6 @@ export class I18nOneLanguage {
         return Object.keys(this.onelng);
     }
     /**
-     * returns the change history, if any
-     * 
-     * @param flush - if true the history is reset to an empty list.
-     * 
-     * @returns a string list of keys
-     */
-    public getHistory(flush:boolean) : string[] {
-        const his = this.history;
-        if (flush) {
-            this.history = [];
-        }
-        return his;
-    }
-    /**
      * compare this OneLanguage Object(master) with antarget one and creates actions to update the target object (target space)
      * 
      * @param srcmod - the module we are operating in.
@@ -373,7 +454,7 @@ export class I18nOneLanguage {
         var tal = new I18nTranslateActions(srcmod,srclng,targetmod,targetlng);
         for (var key in this.onelng) {
             if (this.hasKey(key) && !target.hasKey(key)) {
-                tal.setupNewKey(key);
+                tal.setupNewKey(key,target.getItem(key));
             } else if (valueFlag && this.hasKey(key) && this.onelng[key] != target.getItem(key)) {
                 tal.setupUpdateValue(key,this.getItem(key));
             }
@@ -393,6 +474,7 @@ export class I18nOneLanguage {
      * @param one - javascirpt object toinitialize via setItems
      */
     constructor(one:any) {
+        this.subject=new Subject<I18nTranslateAction>();
         this.setItems(one);
     }
 }
@@ -404,6 +486,22 @@ export class I18nOneLanguage {
 export class I18nLanguages {
     private lngs : any = {};
     private defaultLng:string = 'en';
+
+    /**
+     * 
+     * @param modref the module reference
+     * @param lngkey the language key
+     * @param i18n i not null, then new key will be created in the default language
+     * @returns A new I18nCache 
+     */
+    public getLanguageCache(modref:string,lngkey:string,i18n:I18nCircleModel|null):I18nCache|null {
+        if (this.lngs.hasOwnProperty(lngkey)) {
+            return this.lngs[lngkey].getLanguageCache(modref,lngkey,i18n);
+        } else {
+            return null;
+        }
+    }
+    
     /**
      * sets or merge a language collection of key/value-pairs
      * 
@@ -580,21 +678,6 @@ export class I18nLanguages {
     }
 
     /**
-     * returns the change history for one language key, if any
-     * 
-     * @param lngkey - the language key for interes.
-     * @param flush - if true the history is reset to an empty list.
-     * 
-     * @returns a string list of keys
-     */
-    public getHistory(lngkey:string,flush:boolean): string[] {
-        if (this.lngs.hasOwnProperty(lngkey)) {
-            return this.lngs[lngkey].getHistory(flush);
-        } else {
-            return [];
-        }
-    }
-    /**
      * compares two collections of I18nLanguages and produces an action list
      * @param srcmod module name of this source
      * @param target target langauges to compare with
@@ -664,6 +747,18 @@ export class I18nOneModule {
     private filepath:string='';
     private createFlag:boolean= true;
     private languages:I18nLanguages;
+
+    /**
+     * 
+     * @param modref the module reference
+     * @param lngkey the language key
+     * @param i18n i not null, then new key will be created in the default language
+     * @returns A new I18nCache 
+     */
+    public getLanguageCache(modref:string,lngkey:string,i18n:I18nCircleModel|null):I18nCache|null {
+        return this.languages.getLanguageCache(modref,lngkey,i18n);
+    }
+    
 
     /**
      * 
@@ -883,21 +978,6 @@ export class I18nOneModule {
         return (this.languages==null)?[]:this.languages.getLanguageKeys(lngkey);
     }
     /**
-     * returns the change history for one language key, if any
-     * 
-     * @param lngkey - the language key for interes.
-     * @param flush - if true the history is reset to an empty list.
-     * 
-     * @returns a string list of keys
-     */
-     public getHistory(lngkey:string,flush:boolean): string[] {
-        if (this.languages != null) {
-            return this.languages.getHistory(lngkey,flush);
-        } else {
-            return [];
-        }
-    }
-    /**
      * compares two collections of I18nLanguages and produces an action list
      * @param srcmod module name of this source
      * @param target target langauges to compare with
@@ -917,34 +997,65 @@ export class I18nCircleModel {
     private modules : any = {};
     private createFlag : boolean = true;
 
+    /**
+     * 
+     * @param modref the reference to the model
+     * @param moddata the full data as javascrpt object
+     * @returns the newly added module itself
+     */
     public addModule(modref:string,moddata:any) : I18nOneModule {
         var mod :I18nOneModule = I18nOneModule.createFromData(modref,moddata);
         this.modules[modref] = mod;
         return mod;
     }
 
-    public addLanguage(modref:string,lngkey:string,lngdata:any) :void {
+
+    private getModule(modref:string) : I18nOneModule {
         var mod : I18nOneModule;
         if (this.modules.hasOwnProperty(modref)) {
-            mod = this.modules[modref];
+            mod =  this.modules[modref];
         } else {
             if (this.createFlag) {
                 mod = this.addModule(modref,{});
             } else {
-                return;
+                throw new Error("New Modul without createFlag: "+modref);
             }
         }
+        return mod;
+    }
+    /**
+     * sets or merge a language collection of key/value-pairs
+     * 
+     * @param modref - the module reference
+     * @param lngkey - the language key e.g. 'en'
+     * @param lngmap - the javascript object to initialize.
+     */
+    public addLanguage(modref:string,lngkey:string,lngdata:any) :void {
+        var mod : I18nOneModule = this.getModule(modref);
         mod.addLanguage(lngkey,lngdata,this.createFlag);
     }
-
+    /**
+     * 
+     * @returns a list of module references
+     */
     public getModuleReferences():string[] {
         return this.modules.keys();
     }
-
+    /**
+     * 
+     * @returns the list of modules
+     */
     public getModules():I18nOneModule[] {
         return this.modules;
     }
 
+    /**
+     * 
+     * @param modref the module reference
+     * @param lngkey langauge key
+     * @param key the key
+     * @returns the language value if existent or the key if not.
+     */
     public get(modref:string,lngkey:string,key:string) : string {
         var mod : I18nOneModule;
         if (this.modules.hasOwnProperty(modref)) {
@@ -961,4 +1072,17 @@ export class I18nCircleModel {
         }
         return key;
     }
+
+    /**
+     * 
+     * @param modref the module reference
+     * @param lngkey the language key
+     * @param i18n if not null, then new key will be created in the default language
+     * @returns A new I18nCache 
+     */
+    public getLanguageCache(modref:string,lngkey:string,i18n:I18nCircleModel):I18nCache|null {
+        var mod : I18nOneModule = this.getModule(modref);
+        return mod.getLanguageCache(modref,lngkey,this.createFlag?this:null);
+    }
+    
 }
