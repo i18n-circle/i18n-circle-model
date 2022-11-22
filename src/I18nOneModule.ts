@@ -2,26 +2,27 @@ import { I18nCache } from './I18nCache';
 import { I18nLanguages } from './I18nLanguages';
 import { I18nTranslateActions } from './I18nTranslateActions';
 import { I18nCircleModel } from './I18nCircleModel';
+import { I18nHistoryIndex } from './I18nHistoryIndex';
+import { I18nIndexStatus } from './I18nIndexStatus';
 
 /**
- * @class one language module
+ * @class I18nOneModule one language module
  * @public
  */
-
-export class I18nOneModule {
-  private externalName: string = '';
-  private semanticVersion: string = '';
-  private internalVersion: number = 0;
-  private internalName: string = '';
+export class I18nOneModule extends I18nHistoryIndex {
   private filepath: string = '';
-  private createFlag: boolean = true;
   private languages: I18nLanguages;
 
-  public setCreateFlag(flag: boolean): void {
-    this.createFlag = flag;
+  public getHistoryIndex(): I18nHistoryIndex {
+    return this;
   }
-  public getCreateFlag(): boolean {
-    return this.createFlag;
+
+  private _createFlag: boolean = true;
+  public get createFlag(): boolean {
+    return this._createFlag && this.status === I18nIndexStatus.ACTIVE;
+  }
+  public set createFlag(value: boolean) {
+    this._createFlag = value && this.status === I18nIndexStatus.ACTIVE;
   }
   /**
    *
@@ -35,13 +36,6 @@ export class I18nOneModule {
   }
 
   /**
-   *
-   * @returns the internal name fields separated by '__'
-   */
-  public getInternalName(): string {
-    return this.externalName + '__' + this.semanticVersion + '__' + this.internalVersion;
-  }
-  /**
    * @constructor
    * create the module with all initializers
    *
@@ -51,30 +45,8 @@ export class I18nOneModule {
    * @param lng - javascript object to initialize an I18nLanguages object.
    * @private
    */
-  private constructor(intName: string, filepath: string, createFlag: boolean, lng: any) {
-    const spl = intName.split('__');
-    if (spl.length > 0) {
-      this.externalName = spl[0];
-    } else {
-      this.externalName = intName;
-      this.semanticVersion = 'V0.0.1';
-      this.internalVersion = 1;
-    }
-    if (spl.length > 1 && spl[1].match(/^V[0-9]+\.[0-9]+\.+[0-9]/)) {
-      this.semanticVersion = spl[1];
-      if (spl.length > 2 && spl[2].match(/^[0-9]+$/)) {
-        this.internalVersion = Number.parseInt(spl[2], 10);
-      } else {
-        this.internalVersion = 1;
-      }
-    } else if (spl.length > 1 && spl[1].match(/^[0-9]+$/)) {
-      this.semanticVersion = 'V0.0.1';
-      this.internalVersion = Number.parseInt(spl[1], 10);
-    } else {
-      this.semanticVersion = 'V0.0.1';
-      this.internalVersion = 1;
-    }
-    this.internalName = this.getInternalName();
+  private constructor(intName: string, status: I18nIndexStatus, filepath: string, createFlag: boolean, lng: any) {
+    super(intName, status);
     this.filepath = filepath;
     this.createFlag = createFlag;
     if (typeof lng === 'object' && lng !== null) {
@@ -91,11 +63,29 @@ export class I18nOneModule {
   public static createFromData(modref: string, data: any): I18nOneModule {
     let mod: I18nOneModule;
     if (data.hasOwnProperty('internalName')) {
-      mod = new I18nOneModule(data.internalName, data.filePath || '', data.createFlag || true, data.languages || null);
+      mod = new I18nOneModule(
+        data.internalName,
+        data.status || I18nIndexStatus.ACTIVE,
+        data.filePath || '',
+        data.createFlag || true,
+        data.languages || null,
+      );
     } else if (data.hasOwnProperty('externalName')) {
-      mod = new I18nOneModule(data.externalName, data.filePath || '', data.createFlag || true, data.languages || null);
+      mod = new I18nOneModule(
+        data.externalName,
+        data.status || I18nIndexStatus.ACTIVE,
+        data.filePath || '',
+        data.createFlag || true,
+        data.languages || null,
+      );
     } else {
-      mod = new I18nOneModule(modref, data.filePath || '', data.createFlag || true, data.languages || null);
+      mod = new I18nOneModule(
+        modref,
+        data.status || I18nIndexStatus.ACTIVE,
+        data.filePath || '',
+        data.createFlag || true,
+        data.languages || null,
+      );
     }
     return mod;
   }
@@ -109,6 +99,7 @@ export class I18nOneModule {
       internalName: this.internalName,
       semanticVersion: this.semanticVersion,
       internalVersion: this.internalVersion,
+      status: this.status,
       filepath: this.filepath,
       createFlag: this.createFlag,
       languages: this.languages == null ? {} : this.languages.getAllItems(),
@@ -125,9 +116,9 @@ export class I18nOneModule {
    *
    * @returns the found value or the key if not existent.
    */
-  public getOrCreateItem(lngkey: string, key: string, forceCreate: boolean = false): string {
+  public getOrCreateItem(lngkey: string, key: string): string {
     if (this.languages != null) {
-      if (forceCreate || this.createFlag) {
+      if (this.createFlag) {
         const val: string = this.languages.getOrCreateItem(lngkey, key);
         return val;
       } else {

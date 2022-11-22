@@ -11,6 +11,29 @@ export class I18nCircleModel {
   public getCreateFlag(): boolean {
     return this.createFlag;
   }
+  /**
+   *
+   * @param readonly if true, everything is on readonly.
+   * @param readAndWrite if readonly false and this is true, all can be changed.
+   * @returns true if somethng was changed.
+   */
+  public forceReadAndWrite(readonly: boolean, readAndWrite: boolean): boolean {
+    let change = false;
+    if (readonly) {
+      this.createFlag = false;
+      change = true;
+    } else if (readAndWrite) {
+      this.createFlag = true;
+      change = true;
+    }
+    if (!change) return false;
+    const modrefs: string[] = this.getModuleReferences();
+    modrefs.forEach((modref) => {
+      const mod = this.getModule(modref);
+      mod.createFlag = this.createFlag;
+    });
+    return true;
+  }
 
   /**
    *
@@ -72,7 +95,7 @@ export class I18nCircleModel {
     let val: string;
     if (this.modules.hasOwnProperty(modref)) {
       mod = this.modules[modref];
-      val = mod.getOrCreateItem(lngkey, key, this.createFlag);
+      val = mod.getOrCreateItem(lngkey, key);
       return val;
     }
     if (!this.createFlag) {
@@ -80,7 +103,7 @@ export class I18nCircleModel {
     }
     mod = this.addModule(modref, {});
     mod.addLanguage(lngkey, {});
-    val = mod.getOrCreateItem(lngkey, key, true);
+    val = mod.getOrCreateItem(lngkey, key);
     return val;
   }
 

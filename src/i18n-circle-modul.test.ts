@@ -1,7 +1,10 @@
 import { describe, expect, test } from '@jest/globals';
+import { beforeEach } from 'node:test';
 
 import { I18nCache } from './I18nCache';
 import { I18nCircleModel } from './I18nCircleModel';
+import { I18nHistoryContainer } from './I18nHistoryContainer';
+import { I18nIndexStatus } from './I18nIndexStatus';
 import { I18nLanguages } from './I18nLanguages';
 import { I18nOneLanguage } from './I18nOneLanguage';
 import { I18nOneModule } from './I18nOneModule';
@@ -11,6 +14,10 @@ import { I18nTranslateActions } from './I18nTranslateActions';
 import { I18nTranslateActionType } from './I18nTranslateActionType';
 
 describe('I18nOneLanguage', () => {
+  beforeEach((done) => {
+    I18nHistoryContainer.reset();
+  });
+
   test('I18nOneLanguage-Basics', () => {
     let one = new I18nOneLanguage({});
     expect(one).toBeTruthy();
@@ -186,6 +193,10 @@ describe('I18nOneLanguage', () => {
 });
 
 describe('I18nLanguages', () => {
+  beforeEach((done) => {
+    I18nHistoryContainer.reset();
+  });
+
   let l01_en = {
     logon: 'logon',
     logout: 'logout',
@@ -349,6 +360,10 @@ describe('I18nLanguages', () => {
   });
 });
 describe('I18nOneModule', () => {
+  beforeEach((done) => {
+    I18nHistoryContainer.reset();
+  });
+
   let ls01 = {
     en: {
       logon: 'logon',
@@ -368,7 +383,9 @@ describe('I18nOneModule', () => {
   test('I18nOneModule-Basics', () => {
     var oneM: I18nOneModule = I18nOneModule.createFromData('test01a', {});
     expect(oneM).toBeTruthy();
-    expect(oneM.getInternalName()).toBe('test01a__V0.0.1__1');
+    oneM.status = I18nIndexStatus.ACTIVE;
+    oneM.createFlag = true;
+    expect(oneM.internalName).toBe('test01a__V0.0.1__1');
     expect(oneM.hasLanguage('en')).toBeTruthy(); // default language
     expect(oneM.hasLanguage('de')).toBeFalsy();
     expect(oneM.hasLanguage('es')).toBeFalsy();
@@ -418,7 +435,7 @@ describe('I18nOneModule', () => {
     expect(cache_de?.get('signin')).toBe('Registrieren');
     expect(cache_de?.getSize()).toBe(3);
 
-    expect(oneM.getOrCreateItem('de', 'hello', true)).toBe('hello');
+    expect(oneM.getOrCreateItem('de', 'hello')).toBe('hello');
     expect(cache_de?.getSize()).toBe(3); // no change at the 'de'
     expect(cache_de?.hasKey('hello')).toBeFalsy();
     expect(cache?.getSize()).toBe(4); // update via subject
@@ -480,7 +497,9 @@ describe('I18nOneModule', () => {
   test('I18nOneModule-TanslateActions', () => {
     var oneM: I18nOneModule = I18nOneModule.createFromData('test02b', mod01);
     expect(oneM).toBeTruthy();
-    expect(oneM.getInternalName()).toBe('test02b__V0.1.0__2');
+    oneM.status = I18nIndexStatus.ACTIVE;
+    oneM.createFlag = true;
+    expect(oneM.internalName).toBe('test02b__V0.1.0__2');
     expect(oneM.hasLanguage('en')).toBeTruthy(); // default language
     expect(oneM.hasLanguage('de')).toBeTruthy();
     expect(oneM.hasLanguage('es')).toBeTruthy();
@@ -540,6 +559,7 @@ describe('I18nOneModule', () => {
       internalVersion: 2,
       filepath: '',
       createFlag: true,
+      status: I18nIndexStatus.ACTIVE,
       languages: {
         en: {
           logon: 'logon',
@@ -565,12 +585,17 @@ describe('I18nOneModule', () => {
 
 //     var i18n : I18nCircleModel = new I18nCircleModel();
 describe('I18nCircleModel', () => {
+  beforeEach((done) => {
+    I18nHistoryContainer.reset();
+  });
+
   var mod01 = {
     internalName: 'test02b__V0.1.0__2',
     semanticVersion: 'V0.1.0',
     internalVersion: 2,
     filepath: '',
     createFlag: true,
+    status: I18nIndexStatus.ACTIVE,
     languages: {
       en: {
         logon: 'logon',
@@ -601,12 +626,15 @@ describe('I18nCircleModel', () => {
     expect(mod2.getModule()).toStrictEqual(mod01);
     var mod3 = i18n.getModule('modref03');
     expect(mod3).toBeTruthy();
+    mod3.status = I18nIndexStatus.ACTIVE;
+    mod3.createFlag = true;
     expect(mod3.getModule()).toStrictEqual({
       internalName: 'modref03__V0.0.1__1',
       semanticVersion: 'V0.0.1',
       internalVersion: 1,
       filepath: '',
       createFlag: true,
+      status: I18nIndexStatus.ACTIVE,
       languages: {
         en: {},
         defaultLanguage: 'en',
@@ -619,6 +647,7 @@ describe('I18nCircleModel', () => {
       internalVersion: 1,
       filepath: '',
       createFlag: true,
+      status: I18nIndexStatus.ACTIVE,
       languages: {
         en: {
           logon: 'logon',
@@ -637,9 +666,9 @@ describe('I18nCircleModel', () => {
     var mod1 = i18n.addModule('modref01', mod01);
     expect(mod1).toBeTruthy();
     expect(mod1.getModule()).toStrictEqual(mod01);
-    expect(mod1.getCreateFlag()).toBeTruthy();
-    mod1.setCreateFlag(false);
-    expect(mod1.getCreateFlag()).toBeFalsy();
+    expect(mod1.createFlag).toBeTruthy();
+    mod1.createFlag = false;
+    expect(mod1.createFlag).toBeFalsy();
     i18n.setCreateFlag(false);
     expect(i18n.getCreateFlag()).toBeFalsy();
 
@@ -656,8 +685,8 @@ describe('I18nCircleModel', () => {
     expect(i18n.get('modref04', 'en', 'jump')).toBe('jump');
     expect(i18n.hasKey('modref04', 'en', 'jump')).toBeFalsy(); // no autocreate
 
-    mod1.setCreateFlag(true);
-    expect(mod1.getCreateFlag()).toBeTruthy();
+    mod1.createFlag = true;
+    expect(mod1.createFlag).toBeTruthy();
     i18n.setCreateFlag(true);
     expect(i18n.getCreateFlag()).toBeTruthy();
 
@@ -676,7 +705,7 @@ describe('I18nCircleModel', () => {
     expect(i18n.getCreateFlag()).toBeTruthy();
     var mod4 = i18n.getModule('modref04');
     expect(mod4).toBeTruthy();
-    expect(mod4.getCreateFlag()).toBeTruthy();
+    expect(mod4.createFlag).toBeTruthy();
     // console.log(JSON.stringify(mod4.getModule()));
     expect(i18n.hasKey('modref04', 'en', 'jump')).toBeTruthy(); // autocreate
   });
@@ -706,6 +735,7 @@ describe('I18nCircleModel', () => {
       internalVersion: 2,
       filepath: '',
       createFlag: true,
+      status: I18nIndexStatus.ACTIVE,
       languages: {
         en: {
           logon: 'logon',
