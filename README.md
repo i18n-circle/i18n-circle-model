@@ -9,7 +9,7 @@ npm i @i18n-circle/i18n-circle-model
 
 ## Usage Example
 
-### node.js index.js
+### nodejs(File index.js)
 ```js
 const I18nCircleModel =  require('@i18n-circle/i18n-circle-model').I18nCircleModel;
 
