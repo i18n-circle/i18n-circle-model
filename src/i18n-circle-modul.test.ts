@@ -696,37 +696,36 @@ describe('I18nCircleModel', () => {
     expect(cache_de?.get('logout')).toBe('Abmelden');
     expect(cache_de?.get('signin')).toBe('Registrieren');
     expect(cache_de?.getSize()).toBe(3);
-    expect(cache_de?.get('new stuff')).toBe('new stuff');// auto create in "en" and fall back
+    expect(cache_de?.get('new stuff')).toBe('new stuff'); // auto create in "en" and fall back
     expect(cache_de?.hasKey('new stuff')).toBeFalsy();
     expect(cache_de?.getSize()).toBe(3);
     // console.log("703",JSON.stringify(mod1.getModule(),undefined,2))
     expect(mod1.getModule()).toStrictEqual({
-      "internalName": "test02b__V0.1.0__2",
-      "semanticVersion": "V0.1.0",
-      "internalVersion": 2,
-      "filepath": "",
-      "createFlag": true,
-      "languages": {
-        "en": {
-          "logon": "logon",
-          "logout": "logout",
-          "signin": "signin",
-          "hello": "hello",
-          "new stuff": "new stuff"
+      internalName: 'test02b__V0.1.0__2',
+      semanticVersion: 'V0.1.0',
+      internalVersion: 2,
+      filepath: '',
+      createFlag: true,
+      languages: {
+        en: {
+          logon: 'logon',
+          logout: 'logout',
+          signin: 'signin',
+          hello: 'hello',
+          'new stuff': 'new stuff',
         },
-        "de": {
-          "logon": "Anmelden",
-          "logout": "Abmelden",
-          "signin": "Registrieren"
+        de: {
+          logon: 'Anmelden',
+          logout: 'Abmelden',
+          signin: 'Registrieren',
         },
-        "es": {
-          "hello": "óla",
-          "goodbye": "adiós"
+        es: {
+          hello: 'óla',
+          goodbye: 'adiós',
         },
-        "defaultLanguage": "en"
-      }
+        defaultLanguage: 'en',
+      },
     });
-    expect(i18n.hasKey("modref01","en","new stuff")).toBeTruthy();
-    
+    expect(i18n.hasKey('modref01', 'en', 'new stuff')).toBeTruthy();
   });
 });
