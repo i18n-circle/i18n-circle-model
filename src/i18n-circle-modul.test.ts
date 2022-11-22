@@ -680,4 +680,53 @@ describe('I18nCircleModel', () => {
     // console.log(JSON.stringify(mod4.getModule()));
     expect(i18n.hasKey('modref04', 'en', 'jump')).toBeTruthy(); // autocreate
   });
+
+  test('I18nCircleModel-Cache', () => {
+    var i18n: I18nCircleModel = new I18nCircleModel();
+    var mod1 = i18n.addModule('modref01', mod01);
+    expect(mod1).toBeTruthy();
+    expect(mod1.getModule()).toStrictEqual(mod01);
+
+    let cache_de = i18n.getLanguageCache('modref01', 'de');
+    expect(cache_de?.getSize()).toBe(3);
+    expect(cache_de?.hasKey('logon')).toBeTruthy();
+    expect(cache_de?.hasKey('logout')).toBeTruthy();
+    expect(cache_de?.hasKey('signin')).toBeTruthy();
+    expect(cache_de?.get('logon')).toBe('Anmelden');
+    expect(cache_de?.get('logout')).toBe('Abmelden');
+    expect(cache_de?.get('signin')).toBe('Registrieren');
+    expect(cache_de?.getSize()).toBe(3);
+    expect(cache_de?.get('new stuff')).toBe('new stuff');// auto create in "en" and fall back
+    expect(cache_de?.hasKey('new stuff')).toBeFalsy();
+    expect(cache_de?.getSize()).toBe(3);
+    // console.log("703",JSON.stringify(mod1.getModule(),undefined,2))
+    expect(mod1.getModule()).toStrictEqual({
+      "internalName": "test02b__V0.1.0__2",
+      "semanticVersion": "V0.1.0",
+      "internalVersion": 2,
+      "filepath": "",
+      "createFlag": true,
+      "languages": {
+        "en": {
+          "logon": "logon",
+          "logout": "logout",
+          "signin": "signin",
+          "hello": "hello",
+          "new stuff": "new stuff"
+        },
+        "de": {
+          "logon": "Anmelden",
+          "logout": "Abmelden",
+          "signin": "Registrieren"
+        },
+        "es": {
+          "hello": "óla",
+          "goodbye": "adiós"
+        },
+        "defaultLanguage": "en"
+      }
+    });
+    expect(i18n.hasKey("modref01","en","new stuff")).toBeTruthy();
+    
+  });
 });

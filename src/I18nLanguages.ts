@@ -22,7 +22,8 @@ export class I18nLanguages {
    */
   public getLanguageCache(modref: string, lngkey: string, i18n: I18nCircleModel | null): I18nCache | null {
     if (this.lngs.hasOwnProperty(lngkey)) {
-      return this.lngs[lngkey].getLanguageCache(modref, lngkey, i18n);
+      const lng :I18nOneLanguage = this.lngs[lngkey]
+      return lng.getLanguageCache(modref, lngkey, i18n);
     } else {
       return null;
     }

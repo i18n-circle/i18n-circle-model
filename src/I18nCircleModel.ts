@@ -101,7 +101,7 @@ export class I18nCircleModel {
    * @param i18n if not null, then new key will be created in the default language
    * @returns A new I18nCache
    */
-  public getLanguageCache(modref: string, lngkey: string, i18n: I18nCircleModel): I18nCache | null {
+  public getLanguageCache(modref: string, lngkey: string): I18nCache | null {
     const mod: I18nOneModule = this.getModule(modref);
     return mod.getLanguageCache(modref, lngkey, this.createFlag ? this : null);
   }

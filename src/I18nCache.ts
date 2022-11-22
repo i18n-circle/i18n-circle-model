@@ -33,6 +33,7 @@ export class I18nCache {
     this.lngkey = lngkey;
     this.lngmap = onelng;
     this.i18n = i18nCircle;
+    // console.log("I18nCache-init",modref,lngkey,onelng,i18nCircle?true:false);
     subject.subscribe((action: I18nTranslateAction) => {
       const key = action.getKey();
       const value = action.getValue();
