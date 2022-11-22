@@ -630,7 +630,8 @@ export class I18nLanguages {
         if (this.hasKey(lngkey,key)) {
             return this.lngs[lngkey].getItem(key);
         } else {
-            this.lngs[this.defaultLng].setItem(key,key);
+            var tlng : I18nOneLanguage = this.lngs[this.defaultLng];
+            tlng.setItem(key,key);
             return key;
         }
     }
@@ -810,6 +811,12 @@ export class I18nOneModule {
     private createFlag:boolean= true;
     private languages:I18nLanguages;
 
+    public setCreateFlag(flag:boolean) : void {
+        this.createFlag = flag;
+    }
+    public getCreateFlag():boolean {
+        return this.createFlag;
+    }
     /**
      * 
      * @param modref the module reference
@@ -930,7 +937,8 @@ export class I18nOneModule {
     public getOrCreateItem(lngkey:string,key:string,forceCreate:boolean=false) : string {
         if (this.languages != null) {
             if (forceCreate || this.createFlag) {
-                return this.languages.getOrCreateItem(lngkey,key);
+               var val:string = this.languages.getOrCreateItem(lngkey,key);
+               return val;
             } else {
                 return this.languages.getItem(lngkey,key);
             }
@@ -1070,6 +1078,13 @@ export class I18nCircleModel {
     private modules : any = {};
     private createFlag : boolean = true;
 
+    public setCreateFlag(flag:boolean) : void {
+        this.createFlag = flag;
+    }
+    public getCreateFlag():boolean {
+        return this.createFlag;
+    }
+
     /**
      * 
      * @param modref the reference to the model
@@ -1083,7 +1098,7 @@ export class I18nCircleModel {
     }
 
 
-    private getModule(modref:string) : I18nOneModule {
+    public getModule(modref:string) : I18nOneModule {
         var mod : I18nOneModule;
         if (this.modules.hasOwnProperty(modref)) {
             mod =  this.modules[modref];
@@ -1104,22 +1119,19 @@ export class I18nCircleModel {
      * @param lngmap - the javascript object to initialize.
      */
     public addLanguage(modref:string,lngkey:string,lngdata:any) :void {
-        var mod : I18nOneModule = this.getModule(modref);
-        mod.addLanguage(lngkey,lngdata,this.createFlag);
+        try {
+            var mod : I18nOneModule = this.getModule(modref);
+            mod.addLanguage(lngkey,lngdata,this.createFlag);
+        } catch (error) {
+            console.warn(error);
+        }
     }
     /**
      * 
      * @returns a list of module references
      */
     public getModuleReferences():string[] {
-        return this.modules.keys();
-    }
-    /**
-     * 
-     * @returns the list of modules
-     */
-    public getModules():I18nOneModule[] {
-        return this.modules;
+        return Object.keys(this.modules);
     }
 
     /**
@@ -1133,18 +1145,28 @@ export class I18nCircleModel {
         var mod : I18nOneModule;
         if (this.modules.hasOwnProperty(modref)) {
             mod = this.modules[modref];
-            return mod.getOrCreateItem(lngkey,key,this.createFlag);
+            var val : string = mod.getOrCreateItem(lngkey,key,this.createFlag);
+            return val;
         }
         if (!this.createFlag) {
             return key;
         }
-        mod = I18nOneModule.createFromData(modref,{});
-        if (typeof mod !== 'string') {
-            mod.addLanguage(lngkey,{});
-            return mod.getOrCreateItem(lngkey,key);
-        }
-        return key;
+        mod = this.addModule(modref,{});
+        mod.addLanguage(lngkey,{});
+        var val : string =  mod.getOrCreateItem(lngkey,key,true);
+        return val;
     }
+
+    public hasKey(modref:string,lngkey:string,key:string) : boolean {
+        try {
+            var mod : I18nOneModule = this.getModule(modref);
+            return mod ? mod.hasKey(lngkey,key) : false;
+        } catch (error) {
+            // TODO console.warn(error);
+            return false;
+        }
+    }
+
 
     /**
      * 

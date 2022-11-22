@@ -532,7 +532,151 @@ describe('I18nOneModule', () => {
       '[test02b.en=>test02b.es]: DEL_KEY(goodbye)'
     ]);
     // console.log(516,oneM.getAllItems(),actionlist);
+    expect(oneM.getModule()).toStrictEqual({
+      "internalName": "test02b__V0.1.0__2",
+      "semanticVersion": "V0.1.0",
+      "internalVersion": 2,
+      "filepath": "",
+      "createFlag": true,
+      "languages": {
+        "en": {
+          "logon": "logon",
+          "logout": "logout",
+          "signin": "signin",
+          "hello": "hello"
+        },
+        "de": {
+          "logon": "Anmelden",
+          "logout": "Abmelden",
+          "signin": "Registrieren"
+        },
+        "es": {
+          "hello": "óla",
+          "goodbye": "adiós"
+        },
+        "defaultLanguage": "en"
+      }
+    });
+    // console.log(535,JSON.stringify(oneM.getModule(),undefined,2));
   });
 });
 
-//     var i18m : I18nCircleModel = new I18nCircleModel();
+//     var i18n : I18nCircleModel = new I18nCircleModel();
+describe('I18nCircleModel', () => {
+  var mod01 = {
+    "internalName": "test02b__V0.1.0__2",
+    "semanticVersion": "V0.1.0",
+    "internalVersion": 2,
+    "filepath": "",
+    "createFlag": true,
+    "languages": {
+      "en": {
+        "logon": "logon",
+        "logout": "logout",
+        "signin": "signin",
+        "hello": "hello"
+      },
+      "de": {
+        "logon": "Anmelden",
+        "logout": "Abmelden",
+        "signin": "Registrieren"
+      },
+      "es": {
+        "hello": "óla",
+        "goodbye": "adiós"
+      },
+      "defaultLanguage": "en"
+    }
+  };
+  
+  test('I18nCircleModel-Basic Modules', () => {
+    var i18n : I18nCircleModel = new I18nCircleModel();
+    var mod1 = i18n.addModule("modref01",mod01);
+    expect(mod1).toBeTruthy();
+    expect(mod1.getModule()).toStrictEqual(mod01);
+    var mod2 = i18n.getModule("modref01");
+    expect(mod2).toBeTruthy();
+    expect(mod2.getModule()).toStrictEqual(mod01);
+    var mod3 = i18n.getModule("modref03");
+    expect(mod3).toBeTruthy();
+    expect(mod3.getModule()).toStrictEqual({
+      "internalName": "modref03__V0.0.1__1",
+      "semanticVersion": "V0.0.1",
+      "internalVersion": 1,
+      "filepath": "",
+      "createFlag": true,
+      "languages": {
+        "en": {},
+        "defaultLanguage": "en"
+      }
+    });
+    i18n.addLanguage("modref03","en",mod1.getItems("en"));
+    expect(mod3.getModule()).toStrictEqual({
+      internalName: 'modref03__V0.0.1__1',
+      semanticVersion: 'V0.0.1',
+      internalVersion: 1,
+      filepath: '',
+      createFlag: true,
+      languages: {
+        en: {
+          logon: 'logon',
+          logout: 'logout',
+          signin: 'signin',
+          hello: 'hello'
+        },
+        defaultLanguage: 'en'
+      }
+    });
+    expect(i18n.getModuleReferences()).toStrictEqual(
+      ['modref01', 'modref03' ])
+  });
+  
+  test('I18nCircleModel-Get', () => {
+    var i18n : I18nCircleModel = new I18nCircleModel();
+    var mod1 = i18n.addModule("modref01",mod01);
+    expect(mod1).toBeTruthy();
+    expect(mod1.getModule()).toStrictEqual(mod01);
+    expect(mod1.getCreateFlag()).toBeTruthy();
+    mod1.setCreateFlag(false);
+    expect(mod1.getCreateFlag()).toBeFalsy();
+    i18n.setCreateFlag(false);
+    expect(i18n.getCreateFlag()).toBeFalsy();
+
+    expect(i18n.hasKey("modref01","de","logon")).toBeTruthy();
+    expect(i18n.get("modref01","de","logon")).toBe("Anmelden");
+    expect(i18n.get("modref01","de","jump")).toBe("jump");
+    expect(i18n.hasKey("modref01","de","jump")).toBeFalsy();
+    expect(i18n.get("modref01","en","jump")).toBe("jump");
+    expect(i18n.hasKey("modref01","en","jump")).toBeFalsy();// no autocreate
+
+    expect(i18n.get("modref01","en_US","jump")).toBe("jump");
+    expect(i18n.hasKey("modref01","en_US","jump")).toBeFalsy();// no autocreate
+    
+    expect(i18n.get("modref04","en","jump")).toBe("jump");
+    expect(i18n.hasKey("modref04","en","jump")).toBeFalsy();// no autocreate
+    
+    mod1.setCreateFlag(true);
+    expect(mod1.getCreateFlag()).toBeTruthy();
+    i18n.setCreateFlag(true);
+    expect(i18n.getCreateFlag()).toBeTruthy();
+
+    expect(i18n.hasKey("modref01","de","logon")).toBeTruthy();
+    expect(i18n.get("modref01","de","logon")).toBe("Anmelden");
+    expect(i18n.get("modref01","de","jump")).toBe("jump");
+    expect(i18n.hasKey("modref01","de","jump")).toBeFalsy();
+    expect(i18n.hasKey("modref01","en","jump")).toBeTruthy();// autocreate
+    expect(i18n.get("modref01","en","jump")).toBe("jump");
+
+    expect(i18n.get("modref01","en_US","fall")).toBe("fall");
+    expect(i18n.hasKey("modref01","en","fall")).toBeTruthy();// autocreate
+    expect(i18n.hasKey("modref01","en_US","fall")).toBeFalsy();
+    
+    expect(i18n.get("modref04","en","jump")).toBe("jump");
+    expect(i18n.getCreateFlag()).toBeTruthy();
+    var mod4 = i18n.getModule("modref04");
+    expect(mod4).toBeTruthy();
+    expect(mod4.getCreateFlag()).toBeTruthy();
+    // console.log(JSON.stringify(mod4.getModule()));
+    expect(i18n.hasKey("modref04","en","jump")).toBeTruthy();// autocreate
+  });
+});
