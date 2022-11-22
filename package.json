@@ -1,6 +1,6 @@
 {
   "name": "@i18n-circle/i18n-circle-model",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "datamodel for server and frontend usage of i18n",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -9,20 +9,23 @@
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
-    "prepare" : "npm run build",
-    "prepublishOnly" : "npm test && npm run lint",
-    "preversion" : "npm run lint",
-    "version" : "npm run format && git add -A src",
-    "postversion" : "git push && git push --tags"
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/myonara/i18n-circle-model.git"
   },
   "keywords": [
-    "i18n","internationalisation"
+    "i18n",
+    "internationalisation"
   ],
-  "files": ["lib/**/*"],
+  "files": [
+    "lib/**/*"
+  ],
   "author": "myonara",
   "license": "Apache 2.0",
   "bugs": {
