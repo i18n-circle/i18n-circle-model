@@ -4,7 +4,6 @@ import { I18nCircleModel } from './I18nCircleModel';
 import { I18nIndexStatus } from './I18nIndexStatus';
 
 describe('I18nCircleModel', () => {
-  
   var mod01 = {
     internalName: 'test02b__V0.1.0__2',
     semanticVersion: 'V0.1.0',

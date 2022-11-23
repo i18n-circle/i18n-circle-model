@@ -4,7 +4,6 @@ import { I18nLanguages } from './I18nLanguages';
 import { I18nTranslateActions } from './I18nTranslateActions';
 
 describe('I18nLanguages', () => {
-  
   let l01_en = {
     logon: 'logon',
     logout: 'logout',

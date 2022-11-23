@@ -5,7 +5,6 @@ import { I18nOperationMode } from './I18nOperationMode';
 import { I18nTranslateActions } from './I18nTranslateActions';
 
 describe('I18nOneLanguage', () => {
-
   test('I18nOneLanguage-Basics', () => {
     let one = new I18nOneLanguage({});
     expect(one).toBeTruthy();

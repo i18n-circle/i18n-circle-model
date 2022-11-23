@@ -9,10 +9,10 @@ export class SemanticVersion {
   private _post: string | undefined;
   private _counter: number = 0;
 
-  public get c():number{
+  public get c(): number {
     return this._counter;
   }
-  public set c(value:number) {
+  public set c(value: number) {
     if (value > this._counter) {
       this._counter = value;
     } else {
@@ -29,8 +29,8 @@ export class SemanticVersion {
     }
     return vr;
   }
-  public set v(value:string) {
-    SemanticVersion.splitSemanticVersion(value,this);
+  public set v(value: string) {
+    SemanticVersion.splitSemanticVersion(value, this);
   }
   public patch(pre?: string, post?: string): string {
     this._patch++;
@@ -57,7 +57,15 @@ export class SemanticVersion {
     return this.v;
   }
 
-  public constructor(sem: string | null, maj?: number, min?: number, pat?: number, pre?: string, post?: string,cnt?: number) {
+  public constructor(
+    sem: string | null,
+    maj?: number,
+    min?: number,
+    pat?: number,
+    pre?: string,
+    post?: string,
+    cnt?: number,
+  ) {
     if (sem !== null) {
       SemanticVersion.splitSemanticVersion(sem, this);
     } else {
@@ -66,11 +74,14 @@ export class SemanticVersion {
       this._patch = pat || 0;
       this._pre = pre;
       this._post = post;
-      this._counter = cnt||0;
+      this._counter = cnt || 0;
     }
   }
 
-  public static splitSemanticVersion(value: string, other?: SemanticVersion|null): SemanticVersion | undefined | null {
+  public static splitSemanticVersion(
+    value: string,
+    other?: SemanticVersion | null,
+  ): SemanticVersion | undefined | null {
     const m: RegExpExecArray | null = semverRegEx.exec(value);
     if (m === null || m.length !== 6) {
       return undefined;
@@ -82,7 +93,8 @@ export class SemanticVersion {
       other._patch = parseInt(m[3], 10);
       other._pre = m[4];
       other._post = m[5];
-      if (vBefore !== other.v) {
+      if (vBefore !== 'V0.0.0' && vBefore !== other.v) {
+        // console.log("splitSemanticVersion-3",vBefore,other.v);
         other._counter++;
       }
       return null;
