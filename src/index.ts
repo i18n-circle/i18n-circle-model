@@ -9,6 +9,7 @@ import { I18nOperationMode } from './I18nOperationMode';
 import { I18nTranslateAction } from './I18nTranslateAction';
 import { I18nTranslateActions } from './I18nTranslateActions';
 import { I18nTranslateActionType } from './I18nTranslateActionType';
+import { SemanticVersion } from './SemanticVersion';
 
 export {
   I18nCache,
@@ -22,4 +23,5 @@ export {
   I18nTranslateAction,
   I18nTranslateActions,
   I18nTranslateActionType,
+  SemanticVersion,
 };

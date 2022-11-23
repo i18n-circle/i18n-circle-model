@@ -15,7 +15,7 @@ export class SemanticVersion {
   public set c(value: number) {
     if (value > this._counter) {
       this._counter = value;
-    } else {
+    } else if (this.v !== 'V0.0.0') {
       this._counter++;
     }
   }
