@@ -1,6 +1,6 @@
 {
   "name": "@i18n-circle/i18n-circle-model",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "datamodel for server and frontend usage of i18n",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
