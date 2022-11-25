@@ -4,14 +4,16 @@ import { I18nTranslateActions } from './I18nTranslateActions';
 import { I18nCircleModel } from './I18nCircleModel';
 import { I18nHistoryIndex } from './I18nHistoryIndex';
 import { I18nIndexStatus } from './I18nIndexStatus';
+import { I18nContext } from './I18nContext';
+import { I18nChangeAction, I18nChangeActionType } from './I18nChangeAction';
 
 /**
  * @class I18nOneModule one language module
  * @public
  */
 export class I18nOneModule extends I18nHistoryIndex {
-  private filepath: string = '';
   private languages: I18nLanguages;
+  private context: I18nContext;
 
   public getHistoryIndex(): I18nHistoryIndex {
     return this;
@@ -22,7 +24,18 @@ export class I18nOneModule extends I18nHistoryIndex {
     return this._createFlag && this.status === I18nIndexStatus.ACTIVE;
   }
   public set createFlag(value: boolean) {
-    this._createFlag = value && this.status === I18nIndexStatus.ACTIVE;
+    const flag: boolean = value && this.status === I18nIndexStatus.ACTIVE;
+    if (this._createFlag !== flag) {
+      I18nChangeAction.publishChange(
+        I18nChangeActionType.CREATE_FLAG,
+        flag ? 'Activating Changes in OneModule' : 'Deactivation Changes in OneModule',
+        this.context,
+        'I18nOneModule.createFlag',
+        this._createFlag ? 'true' : 'false',
+        flag ? 'true' : 'false',
+      );
+      this._createFlag = flag;
+    }
   }
   /**
    *
@@ -39,52 +52,69 @@ export class I18nOneModule extends I18nHistoryIndex {
    * @constructor
    * create the module with all initializers
    *
-   * @param modname - name of the module
-   * @param filepath - filepath, wehre the module parameters were loaded from.
+   * @param intName - internal name.
+   * @param status - Indexstatus
    * @param createFlag - if true getOrCreateItem creates missing keys, if false not.
    * @param lng - javascript object to initialize an I18nLanguages object.
+   * @param context the project and module context for this module
    * @private
    */
-  private constructor(intName: string, status: I18nIndexStatus, filepath: string, createFlag: boolean, lng: any) {
+  private constructor(intName: string, status: I18nIndexStatus, createFlag: boolean, lng: any, context: I18nContext) {
     super(intName, status);
-    this.filepath = filepath;
     this.createFlag = createFlag;
+    this.context = context;
     if (typeof lng === 'object' && lng !== null) {
-      this.languages = new I18nLanguages(lng);
+      this.languages = new I18nLanguages(lng, context);
     } else {
-      this.languages = new I18nLanguages({});
+      this.languages = new I18nLanguages({}, context);
     }
+    I18nChangeAction.publishChange(
+      I18nChangeActionType.MODULE_CREATED,
+      'Module created',
+      this.context,
+      'I18nOneModule.constructor',
+      undefined,
+      this.internalName,
+    );
   }
   /**
    *
    * @param data a saved javascript object to initialize the module.
    * @returns the module on success or an error message on failure.
    */
-  public static createFromData(modref: string, data: any): I18nOneModule {
+  public static createFromData(modref: string, data: any, context: I18nContext): I18nOneModule {
     let mod: I18nOneModule;
+    I18nChangeAction.publishChange(
+      I18nChangeActionType.CREATE_MODULE,
+      'Create one module',
+      context,
+      'I18nOneModule.createFromData',
+      undefined,
+      modref,
+    );
     if (data.hasOwnProperty('internalName')) {
       mod = new I18nOneModule(
         data.internalName,
         data.status || I18nIndexStatus.ACTIVE,
-        data.filePath || '',
         data.createFlag || true,
         data.languages || null,
+        context,
       );
     } else if (data.hasOwnProperty('externalName')) {
       mod = new I18nOneModule(
         data.externalName,
         data.status || I18nIndexStatus.ACTIVE,
-        data.filePath || '',
         data.createFlag || true,
         data.languages || null,
+        context,
       );
     } else {
       mod = new I18nOneModule(
         modref,
         data.status || I18nIndexStatus.ACTIVE,
-        data.filePath || '',
         data.createFlag || true,
         data.languages || null,
+        context,
       );
     }
     return mod;
@@ -100,7 +130,6 @@ export class I18nOneModule extends I18nHistoryIndex {
       semanticVersion: this.semanticVersion,
       internalVersion: this.internalVersion,
       status: this.status,
-      filepath: this.filepath,
       createFlag: this.createFlag,
       languages: this.languages == null ? {} : this.languages.getAllItems(),
     };
@@ -136,7 +165,7 @@ export class I18nOneModule extends I18nHistoryIndex {
   public addLanguage(lngkey: string, lngmap: any, forceCreate: boolean = false) {
     if (this.languages == null) {
       if (this.createFlag || forceCreate) {
-        this.languages = new I18nLanguages({});
+        this.languages = new I18nLanguages({}, this.context);
       } else {
         return;
       }
@@ -209,21 +238,6 @@ export class I18nOneModule extends I18nHistoryIndex {
     return this.languages == null ? {} : this.languages.getAllItems();
   }
 
-  /**
-   * merge all items with a second javascript object
-   *
-   * @remarks
-   * Keys in the parameter two will overwrite existing key/value pairs in the existing one.
-   *
-   * @param lngkey - which language to merge in.
-   * @param other - the OneLanugage or key/value pairs object to merge.
-   * @alpha (data type checks?, add TransalteActions/Subject
-   */
-  public mergeItems(lngkey: string, other: any): void {
-    if (this.languages != null) {
-      this.languages.mergeItems(lngkey, other);
-    }
-  }
   /**
    *
    * @param lngkey the language to get the keys from

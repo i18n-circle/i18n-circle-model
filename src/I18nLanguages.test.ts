@@ -1,9 +1,12 @@
 import { describe, expect, test } from '@jest/globals';
+import { I18nContext } from './I18nContext';
 
 import { I18nLanguages } from './I18nLanguages';
 import { I18nTranslateActions } from './I18nTranslateActions';
 
 describe('I18nLanguages', () => {
+  const test_context = I18nContext.getContext('test-I18nLanguages');
+
   let l01_en = {
     logon: 'logon',
     logout: 'logout',
@@ -48,7 +51,7 @@ describe('I18nLanguages', () => {
   };
 
   test('I18nLanguages-Basics', () => {
-    let oneLS = new I18nLanguages({});
+    let oneLS = new I18nLanguages({}, test_context.extendModule('Basics'));
     expect(oneLS).toBeTruthy();
     // console.log(oneLS);
     expect(oneLS.hasLanguage('en')).toBeTruthy(); // default!!
@@ -104,9 +107,9 @@ describe('I18nLanguages', () => {
   });
 
   test('I18nLanguages-Transactions', () => {
-    let oneLS = new I18nLanguages(ls01);
+    let oneLS = new I18nLanguages(ls01, test_context.extendModule('Basics'));
     expect(oneLS).toBeTruthy();
-    let twoLS = new I18nLanguages(ls02);
+    let twoLS = new I18nLanguages(ls02, test_context.extendModule('Basics'));
     expect(twoLS).toBeTruthy();
     let transact: I18nTranslateActions = twoLS.compareLanguages('mod1', oneLS, 'mod2');
     var actlist = transact.getTransScript();
@@ -124,7 +127,7 @@ describe('I18nLanguages', () => {
     ]);
   });
   test('I18nLanguages-checkConsistency', () => {
-    let twoLS = new I18nLanguages(ls02);
+    let twoLS = new I18nLanguages(ls02, test_context.extendModule('Basics'));
     var actlist = twoLS.checkConsistency('mod0').getTransScript();
     expect(actlist).toStrictEqual([
       '[mod0.en=>mod0.de]: NEW_KEY(register,register)',
@@ -135,7 +138,7 @@ describe('I18nLanguages', () => {
     // console.log(299,ls02,actlist);
   });
   test('I18nLanguages-I18nCache', () => {
-    let twoLS = new I18nLanguages(ls02);
+    let twoLS = new I18nLanguages(ls02, test_context.extendModule('Basics'));
     expect(twoLS).toBeTruthy();
     let cache = twoLS.getLanguageCache('test', 'en', null);
     expect(cache?.getSize()).toBe(3);

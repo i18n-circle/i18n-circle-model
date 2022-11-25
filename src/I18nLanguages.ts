@@ -3,6 +3,8 @@ import { I18nOneLanguage } from './I18nOneLanguage';
 import { I18nOperationMode } from './I18nOperationMode';
 import { I18nTranslateActions } from './I18nTranslateActions';
 import { I18nCircleModel } from './I18nCircleModel';
+import { I18nContext } from './I18nContext';
+import { I18nChangeAction, I18nChangeActionType } from './I18nChangeAction';
 
 /**
  * @class for a collection of Languages
@@ -11,7 +13,24 @@ import { I18nCircleModel } from './I18nCircleModel';
 
 export class I18nLanguages {
   private lngs: any = {};
-  private defaultLng: string = 'en';
+  private _defaultLng: string = 'en';
+  public get defaultLng(): string {
+    return this._defaultLng;
+  }
+  public set defaultLng(value: string) {
+    if (this._defaultLng !== value) {
+      I18nChangeAction.publishChange(
+        I18nChangeActionType.DEFAULT_LANGUAGE,
+        'New Default Language set',
+        this.context,
+        'I18nLanguages.defaultLng',
+        this._defaultLng,
+        value,
+      );
+      this._defaultLng = value;
+    }
+  }
+  private context: I18nContext;
 
   /**
    *
@@ -23,7 +42,7 @@ export class I18nLanguages {
   public getLanguageCache(modref: string, lngkey: string, i18n: I18nCircleModel | null): I18nCache | null {
     if (this.lngs.hasOwnProperty(lngkey)) {
       const lng: I18nOneLanguage = this.lngs[lngkey];
-      return lng.getLanguageCache(modref, lngkey, i18n);
+      return lng.getLanguageCache(modref, lngkey, this.context.extendModule(lngkey), i18n);
     } else {
       return null;
     }
@@ -37,18 +56,33 @@ export class I18nLanguages {
    */
   public addLanguage(lngkey: string, lngmap: any) {
     // console.log("add_language-1",lngkey,lngmap,this.lngs);
+    I18nChangeAction.publishChange(
+      I18nChangeActionType.ADD_LANGUAGE,
+      'Language added to Module',
+      this.context,
+      'I18nLanguages.addLanguage',
+      undefined,
+      lngkey,
+    );
     if (this.lngs.hasOwnProperty(lngkey)) {
       this.lngs[lngkey].mergeItems(lngmap);
       // console.log("add_language-2",this.lngs);
     } else {
-      this.lngs[lngkey] = new I18nOneLanguage(lngmap);
+      this.lngs[lngkey] = new I18nOneLanguage(lngmap, this.context.extendModule(lngkey));
     }
   }
   /**
    * @constructor
    * @param allLanguages - sets the all data within
    */
-  constructor(allLanguages: any) {
+  constructor(allLanguages: any, context: I18nContext) {
+    this.context = context;
+    I18nChangeAction.publishChange(
+      I18nChangeActionType.ALL_LANGUAGES_CREATED,
+      'All Languages added to Module',
+      this.context,
+      'I18nLanguages.constructor',
+    );
     if (typeof allLanguages === 'object' && allLanguages !== null) {
       if (allLanguages.hasOwnProperty('defaultLanguage')) {
         this.defaultLng = allLanguages.defaultLanguage;
@@ -109,6 +143,14 @@ export class I18nLanguages {
     } else {
       const tlng: I18nOneLanguage = this.lngs[this.defaultLng];
       tlng.setItem(key, key);
+      I18nChangeAction.publishChange(
+        I18nChangeActionType.CREATE_DEFAULT_ENTRY,
+        'Added the key to the default language',
+        this.context.extendModule(this.defaultLng).extendLanguage(key),
+        'I18nLanguages.getOrCreateItem',
+        undefined,
+        key,
+      );
       return key;
     }
   }
@@ -121,7 +163,7 @@ export class I18nLanguages {
    */
   public setItem(lngkey: string, key: string, value: string): void {
     if (!this.lngs.hasOwnProperty(lngkey)) {
-      this.lngs[lngkey] = new I18nOneLanguage({});
+      this.lngs[lngkey] = new I18nOneLanguage({}, this.context.extendModule(lngkey));
     }
     this.lngs[lngkey].setItem(key, value);
   }

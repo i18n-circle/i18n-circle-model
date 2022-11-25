@@ -1,9 +1,11 @@
 import { describe, expect, test } from '@jest/globals';
+import { I18nContext } from './I18nContext';
 
 import { I18nIndexStatus } from './I18nIndexStatus';
 import { I18nOneModule } from './I18nOneModule';
 
 describe('I18nOneModule', () => {
+  const test_context: I18nContext = I18nContext.getContext('test-I18nOneLanguage');
   let ls01 = {
     en: {
       logon: 'logon',
@@ -21,7 +23,7 @@ describe('I18nOneModule', () => {
     defaultLanguage: 'en',
   };
   test('I18nOneModule-Basics', () => {
-    var oneM: I18nOneModule = I18nOneModule.createFromData('test01a', {});
+    var oneM: I18nOneModule = I18nOneModule.createFromData('test01a', {}, test_context.extendProject('test01a'));
     expect(oneM).toBeTruthy();
     oneM.status = I18nIndexStatus.ACTIVE;
     oneM.createFlag = true;
@@ -113,7 +115,6 @@ describe('I18nOneModule', () => {
     internalName: 'test02b__V0.1.0__2',
     semanticVersion: 'V0.1.0',
     internalVersion: 2,
-    filepath: 'src/langauges/test02b.json',
     createFlag: true,
     languages: {
       en: {
@@ -135,7 +136,7 @@ describe('I18nOneModule', () => {
     },
   };
   test('I18nOneModule-TanslateActions', () => {
-    var oneM: I18nOneModule = I18nOneModule.createFromData('test02b', mod01);
+    var oneM: I18nOneModule = I18nOneModule.createFromData('test02b', mod01, test_context.extendProject('test02b'));
     expect(oneM).toBeTruthy();
     oneM.status = I18nIndexStatus.ACTIVE;
     oneM.createFlag = true;
@@ -197,7 +198,6 @@ describe('I18nOneModule', () => {
       internalName: 'test02b__V0.1.0__2',
       semanticVersion: 'V0.1.0',
       internalVersion: 2,
-      filepath: '',
       createFlag: true,
       status: I18nIndexStatus.ACTIVE,
       languages: {

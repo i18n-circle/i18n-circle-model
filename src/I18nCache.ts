@@ -2,6 +2,7 @@ import { Subject } from 'rxjs';
 import { I18nTranslateAction } from './I18nTranslateAction';
 import { I18nTranslateActionType } from './I18nTranslateActionType';
 import { I18nCircleModel } from './I18nCircleModel';
+import { I18nContext } from './I18nContext';
 
 /**
  * this class contains all key and values for one specifc module in a specifc language.
@@ -14,6 +15,7 @@ export class I18nCache {
   private modref: string = '';
   private lngkey: string = '';
   private lngmap: any = {};
+  private context: I18nContext;
 
   /**
    *
@@ -26,12 +28,14 @@ export class I18nCache {
     modref: string,
     lngkey: string,
     onelng: any,
+    context: I18nContext,
     i18nCircle: I18nCircleModel | null,
     subject: Subject<I18nTranslateAction>,
   ) {
     this.modref = modref;
     this.lngkey = lngkey;
     this.lngmap = onelng;
+    this.context = context;
     this.i18n = i18nCircle;
     // console.log("I18nCache-init",modref,lngkey,onelng,i18nCircle?true:false);
     subject.subscribe((action: I18nTranslateAction) => {

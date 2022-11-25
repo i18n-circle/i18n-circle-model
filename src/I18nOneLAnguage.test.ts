@@ -1,12 +1,15 @@
 import { describe, expect, test } from '@jest/globals';
+import { I18nContext } from './I18nContext';
 
 import { I18nOneLanguage } from './I18nOneLanguage';
 import { I18nOperationMode } from './I18nOperationMode';
 import { I18nTranslateActions } from './I18nTranslateActions';
 
 describe('I18nOneLanguage', () => {
+  const test_context = I18nContext.getContext('test-I18nOneLanguage', 'OneLanguage', 'test');
+
   test('I18nOneLanguage-Basics', () => {
-    let one = new I18nOneLanguage({});
+    let one = new I18nOneLanguage({}, test_context);
     expect(one).toBeTruthy();
     expect(Object.keys(one.getItems()).length).toBe(0);
     expect(one.getKeys().length).toBe(0);
@@ -42,9 +45,9 @@ describe('I18nOneLanguage', () => {
     expect(one.getItem('test1')).toBe('test1');
   });
   test('I18nOneLanguage-Merging', () => {
-    let one = new I18nOneLanguage({});
+    let one = new I18nOneLanguage({}, test_context);
     expect(one).toBeTruthy();
-    let two = new I18nOneLanguage({});
+    let two = new I18nOneLanguage({}, test_context);
     expect(two).toBeTruthy();
     one.setItem('test1', 'test1-val1');
     one.setItem('test2', 'test2-val1');
@@ -73,7 +76,7 @@ describe('I18nOneLanguage', () => {
     expect(one.getItem('test7')).toBe('test7-val2');
     expect(one.getItem('test8')).toBe('test8-val2');
     // init with value field from one to three.
-    let three = new I18nOneLanguage(one.getItems());
+    let three = new I18nOneLanguage(one.getItems(), test_context);
     expect(three.getKeys().length).toBe(8);
     expect(Object.keys(three.getItems()).length).toBe(8);
     expect(three.getItem('test1')).toBe('test1-val1');
@@ -89,7 +92,7 @@ describe('I18nOneLanguage', () => {
     expect(Object.keys(three.getItems()).length).toBe(7);
     expect(three.getItem('test8')).toBe('test8');
     expect(one.getItem('test8')).toBe('test8-val2');
-    let cache = three.getLanguageCache('test', 'test', null);
+    let cache = three.getLanguageCache('test', 'test', test_context, null);
     expect(cache?.getSize()).toBe(7);
     expect(cache.get('test1')).toBe('test1-val1');
     expect(cache.get('test2')).toBe('test2-val2');
@@ -104,9 +107,9 @@ describe('I18nOneLanguage', () => {
     expect(cache?.hasKey('test9-notexiting')).toBeFalsy();
   });
   test('I18nOneLanguage-Transactions', () => {
-    let one = new I18nOneLanguage({});
+    let one = new I18nOneLanguage({}, test_context);
     expect(one).toBeTruthy();
-    let two = new I18nOneLanguage({});
+    let two = new I18nOneLanguage({}, test_context);
     expect(two).toBeTruthy();
     one.setItem('test1', 'test1-val1');
     one.setItem('test2', 'test2-val1');

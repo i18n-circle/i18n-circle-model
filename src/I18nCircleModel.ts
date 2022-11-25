@@ -1,16 +1,30 @@
+import { Observable, Subject, Subscription } from 'rxjs';
 import { I18nCache } from './I18nCache';
+import { I18nChangeAction, I18nChangeActionType } from './I18nChangeAction';
+import { I18nContext } from './I18nContext';
 import { I18nOneModule } from './I18nOneModule';
 
 export class I18nCircleModel {
   private modules: any = {};
-  private createFlag: boolean = true;
+  private _createFlag: boolean = true;
+  public get createFlag(): boolean {
+    return this._createFlag;
+  }
+  public set createFlag(flag: boolean) {
+    if (this._createFlag !== flag) {
+      I18nChangeAction.publishChange(
+        I18nChangeActionType.CREATE_FLAG,
+        flag ? 'Activating Changes in Language Module' : 'Deactivation Changes in Language Module',
+        this.defaultContext,
+        'I18nCircleModel.createFlag',
+        this._createFlag ? 'true' : 'false',
+        flag ? 'true' : 'false',
+      );
+      this._createFlag = flag;
+    }
+  }
+  private defaultContext: I18nContext = I18nContext.getContext('defaultproject');
 
-  public setCreateFlag(flag: boolean): void {
-    this.createFlag = flag;
-  }
-  public getCreateFlag(): boolean {
-    return this.createFlag;
-  }
   /**
    *
    * @param readonly if true, everything is on readonly.
@@ -42,7 +56,7 @@ export class I18nCircleModel {
    * @returns the newly added module itself
    */
   public addModule(modref: string, moddata: any): I18nOneModule {
-    const mod: I18nOneModule = I18nOneModule.createFromData(modref, moddata);
+    const mod: I18nOneModule = I18nOneModule.createFromData(modref, moddata, this.defaultContext.extendProject(modref));
     this.modules[modref] = mod;
     return mod;
   }
@@ -127,5 +141,20 @@ export class I18nCircleModel {
   public getLanguageCache(modref: string, lngkey: string): I18nCache | null {
     const mod: I18nOneModule = this.getModule(modref);
     return mod.getLanguageCache(modref, lngkey, this.createFlag ? this : null);
+  }
+
+  private static changeSubject: Subject<I18nChangeAction> | undefined;
+
+  public static publishChange(ta: I18nChangeAction): void {
+    if (typeof this.changeSubject === 'undefined') {
+      this.changeSubject = new Subject<I18nChangeAction>();
+    }
+    this.changeSubject.next(ta);
+  }
+  public static subscribeChange(): Subject<I18nChangeAction> {
+    if (typeof this.changeSubject === 'undefined') {
+      this.changeSubject = new Subject<I18nChangeAction>();
+    }
+    return this.changeSubject;
   }
 }

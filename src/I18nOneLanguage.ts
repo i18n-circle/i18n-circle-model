@@ -3,6 +3,8 @@ import { I18nCache } from './I18nCache';
 import { I18nTranslateAction } from './I18nTranslateAction';
 import { I18nTranslateActions } from './I18nTranslateActions';
 import { I18nCircleModel } from './I18nCircleModel';
+import { I18nContext } from './I18nContext';
+import { I18nChangeAction, I18nChangeActionType } from './I18nChangeAction';
 
 /**
  * @class
@@ -13,6 +15,7 @@ import { I18nCircleModel } from './I18nCircleModel';
 export class I18nOneLanguage {
   private onelng: any = {};
   private subject: Subject<I18nTranslateAction>;
+  private context: I18nContext;
 
   /**
    *
@@ -21,8 +24,14 @@ export class I18nOneLanguage {
    * @param i18n i not null, then new key will be created in the default language
    * @returns A new I18nCache
    */
-  public getLanguageCache(modref: string, lngkey: string, i18n: I18nCircleModel | null): I18nCache {
-    return new I18nCache(modref, lngkey, this.onelng, i18n, this.subject);
+  public getLanguageCache(
+    modref: string,
+    lngkey: string,
+    context: I18nContext,
+    i18n: I18nCircleModel | null,
+  ): I18nCache {
+    const cache = new I18nCache(modref, lngkey, this.onelng, context, i18n, this.subject);
+    return cache;
   }
 
   /**
@@ -37,6 +46,14 @@ export class I18nOneLanguage {
     if (existFlag && this.onelng[key] === value) {
       return; // no change ==> no history!!
     }
+    I18nChangeAction.publishChange(
+      I18nChangeActionType.SET_ITEM,
+      'Set item value for one key',
+      this.context.extendLanguage(key),
+      'I18nOneLanguage.setItem',
+      this.onelng[key],
+      value,
+    );
     this.onelng[key] = value;
     action = existFlag ? I18nTranslateAction.setupUpdateValue(key, value) : I18nTranslateAction.setupNewKey(key, value);
     this.subject.next(action);
@@ -68,6 +85,17 @@ export class I18nOneLanguage {
    * @param key - the key (text in default language)
    */
   public deleteItem(key: string) {
+    if (!this.hasKey(key)) {
+      return; // no change.
+    }
+    I18nChangeAction.publishChange(
+      I18nChangeActionType.DELETE_ITEM,
+      'Delete one item value for one key',
+      this.context.extendLanguage(key),
+      'I18nOneLanguage.deleteItem',
+      this.onelng[key],
+      undefined,
+    );
     delete this.onelng[key];
     const action: I18nTranslateAction = I18nTranslateAction.setupDelKey(key);
     this.subject.next(action);
@@ -167,7 +195,8 @@ export class I18nOneLanguage {
    *
    * @param one - javascirpt object toinitialize via setItems
    */
-  constructor(one: any) {
+  constructor(one: any, context: I18nContext) {
+    this.context = context;
     this.subject = new Subject<I18nTranslateAction>();
     this.setItems(one);
   }
