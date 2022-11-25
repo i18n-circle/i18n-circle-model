@@ -17,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/myonara/i18n-circle-model.git"
+    "url": "git+https://github.com/i18n-circle/i18n-circle-model.git"
   },
   "keywords": [
     "i18n",
@@ -29,9 +29,9 @@
   "author": "myonara",
   "license": "Apache 2.0",
   "bugs": {
-    "url": "https://github.com/myonara/i18n-circle-model/issues"
+    "url": "https://github.com/i18n-circle/i18n-circle-model/issues"
   },
-  "homepage": "https://github.com/myonara/i18n-circle-model#readme",
+  "homepage": "https://github.com/i18n-circle/i18n-circle-model#readme",
   "devDependencies": {
     "@babel/preset-typescript": "^7.18.6",
     "@jest/globals": "^29.3.1",
