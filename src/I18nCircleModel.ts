@@ -23,7 +23,13 @@ export class I18nCircleModel {
       this._createFlag = flag;
     }
   }
-  private defaultContext: I18nContext = I18nContext.getContext('defaultproject');
+  private _defaultContext: I18nContext = I18nContext.getContext('defaultproject');
+  public get defaultContext(): I18nContext {
+    return this._defaultContext;
+  }
+  public set defaultContext(value: I18nContext) {
+    this._defaultContext = value;
+  }
 
   /**
    *

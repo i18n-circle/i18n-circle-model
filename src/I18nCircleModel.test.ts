@@ -2,9 +2,35 @@ import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import { I18nChangeAction } from './I18nChangeAction';
 
 import { I18nCircleModel } from './I18nCircleModel';
+import { I18nContext } from './I18nContext';
 import { I18nIndexStatus } from './I18nIndexStatus';
 
 var tmpActions: string[] = [];
+var flagNewText: boolean = false;
+var i18nActionMessages: I18nCircleModel = new I18nCircleModel();
+i18nActionMessages.defaultContext = I18nContext.getContext('I18n-Circle');
+i18nActionMessages.addModule('I18n-Circle-Model', {
+  semanticVersion: 'V0.0.9',
+  internalVersion: 1,
+  status: 1,
+  createFlag: true,
+  languages: {
+    en: {
+      'Create one module': 'Create one module',
+      'All Languages added to Module': 'All Languages added to Module',
+      'Language added to Module': 'Language added to Module',
+      'Set item value for one key': 'Set item value for one key',
+      'Module created': 'Module created',
+      'Deactivation Changes in OneModule': 'Deactivation Changes in OneModule',
+      'Deactivation Changes in Language Module': 'Deactivation Changes in Language Module',
+      'Activating Changes in OneModule': 'Activating Changes in OneModule',
+      'Activating Changes in Language Module': 'Activating Changes in Language Module',
+      'Added the key to the default language': 'Added the key to the default language',
+    },
+    defaultLanguage: 'en',
+  },
+});
+
 function lastSteps(num: number): string[] {
   if (tmpActions.length < num) return tmpActions;
   return tmpActions.slice(-num);
@@ -13,12 +39,22 @@ function lastSteps(num: number): string[] {
 describe('I18nCircleModel', () => {
   beforeAll(() => {
     I18nCircleModel.subscribeChange().subscribe((value: I18nChangeAction) => {
+      if (value.contextToString().startsWith('[I18n-Circle=>')) {
+        return;
+      }
+      if (!i18nActionMessages.hasKey('I18n-Circle-Model', 'en', value.msg)) {
+        i18nActionMessages.get('I18n-Circle-Model', 'en', value.msg); // auto create message.
+        flagNewText = true;
+      }
       tmpActions.push(value.action2String());
     });
   });
 
   afterAll(() => {
     // console.log("tmpActions=",tmpActions);
+    if (flagNewText) {
+      console.log('i18n collected messages:', i18nActionMessages.getModule('I18n-Circle-Model').getModule());
+    }
   });
 
   var mod01 = {

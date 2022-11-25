@@ -1,6 +1,9 @@
 export const semverRegEx =
   /^V(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/g;
 
+/**
+ * class to handle all around SemanticVersion plus an internal version.
+ */
 export class SemanticVersion {
   private _major: number = 0;
   private _minor: number = 0;
@@ -9,9 +12,15 @@ export class SemanticVersion {
   private _post: string | undefined;
   private _counter: number = 0;
 
+  /**
+   * get the internal counter.
+   */
   public get c(): number {
     return this._counter;
   }
+  /**
+   * set the internal counter, protected against lower numbers then current.
+   */
   public set c(value: number) {
     if (value > this._counter) {
       this._counter = value;
@@ -19,6 +28,9 @@ export class SemanticVersion {
       this._counter++;
     }
   }
+  /**
+   * get the semantic version as a string.
+   */
   public get v(): string {
     let vr = 'V' + this._major.toString() + '.' + this._minor.toString() + '.' + this._patch.toString();
     if (typeof this._pre === 'string') {
@@ -29,9 +41,19 @@ export class SemanticVersion {
     }
     return vr;
   }
+  /**
+   * decodes a semantic version via static method
+   * @see splitSemanticVersion
+   */
   public set v(value: string) {
     SemanticVersion.splitSemanticVersion(value, this);
   }
+  /**
+   * Increments the patch version and attach pre and post to it.
+   * @param pre
+   * @param post
+   * @returns the new string represenation.
+   */
   public patch(pre?: string, post?: string): string {
     this._patch++;
     this._pre = pre;
@@ -39,6 +61,12 @@ export class SemanticVersion {
     this._counter++;
     return this.v;
   }
+  /**
+   * Increments the minor version and attach pre and post to it.
+   * @param pre
+   * @param post
+   * @returns the new string represenation.
+   */
   public minor(pre?: string, post?: string): string {
     this._patch = 0;
     this._minor++;
@@ -47,6 +75,12 @@ export class SemanticVersion {
     this._counter++;
     return this.v;
   }
+  /**
+   * Increments the major version and attach pre and post to it.
+   * @param pre
+   * @param post
+   * @returns the new string represenation.
+   */
   public major(pre?: string, post?: string): string {
     this._patch = 0;
     this._minor = 0;
@@ -57,6 +91,16 @@ export class SemanticVersion {
     return this.v;
   }
 
+  /**
+   * Either with sem as semantic version or the rest to initialize this object.
+   * @param sem the semantic version as a string or null if other parameters are releveant.
+   * @param maj major version
+   * @param min minor version
+   * @param pat pach version
+   * @param pre pre string
+   * @param post post strng
+   * @param cnt internal counter.
+   */
   public constructor(
     sem: string | null,
     maj?: number,
@@ -78,6 +122,12 @@ export class SemanticVersion {
     }
   }
 
+  /**
+   *
+   * @param value the string to analyse
+   * @param other the other SemanticVersion to write, if null, a new object is created.
+   * @returns a new object if no other, null if other and ok. undefined on any error.
+   */
   public static splitSemanticVersion(
     value: string,
     other?: SemanticVersion | null,

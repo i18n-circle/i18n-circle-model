@@ -24,7 +24,10 @@ export enum I18nChangeActionType {
  */
 export class I18nChangeAction extends I18nContext {
   private actionType: I18nChangeActionType = I18nChangeActionType.NO_ACTION;
-  private msg: string = '';
+  private _msg: string = '';
+  public get msg(): string {
+    return this._msg;
+  }
   private field: string | undefined;
   private oldvalue: string | undefined;
   private value: string | undefined;
@@ -33,6 +36,10 @@ export class I18nChangeAction extends I18nContext {
     super();
   }
 
+  /**
+   *
+   * @returns the string repesentation of this I18nChangeActionType
+   */
   public getActionTypeAsString(): string {
     switch (this.actionType) {
       default:
@@ -59,6 +66,10 @@ export class I18nChangeAction extends I18nContext {
     }
   }
 
+  /**
+   *
+   * @returns  the string repesentation of this I18nChangeAction-Object
+   */
   public action2String(): string {
     let tmp: string = this.getActionTypeAsString() + ': ';
     tmp += this.contextToString();
@@ -86,7 +97,7 @@ export class I18nChangeAction extends I18nContext {
     const action: I18nChangeAction = new I18nChangeAction();
     I18nContext.CopyContext(context, action);
     action.actionType = actionType;
-    action.msg = msg;
+    action._msg = msg;
     action.field = field;
     action.oldvalue = oldvalue;
     action.value = value;

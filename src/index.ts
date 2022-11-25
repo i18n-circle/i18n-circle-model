@@ -1,5 +1,7 @@
 import { I18nCache } from './I18nCache';
+import { I18nChangeAction } from './I18nChangeAction';
 import { I18nCircleModel } from './I18nCircleModel';
+import { I18nContext } from './I18nContext';
 import { I18nHistoryIndex } from './I18nHistoryIndex';
 import { I18nIndexStatus } from './I18nIndexStatus';
 import { I18nLanguages } from './I18nLanguages';
@@ -13,7 +15,9 @@ import { SemanticVersion } from './SemanticVersion';
 
 export {
   I18nCache,
+  I18nChangeAction,
   I18nCircleModel,
+  I18nContext,
   I18nHistoryIndex,
   I18nIndexStatus,
   I18nLanguages,

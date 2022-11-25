@@ -1,6 +1,9 @@
 import { I18nIndexStatus } from './I18nIndexStatus';
 import { SemanticVersion, semverRegEx } from './SemanticVersion';
 
+/**
+ * Calls for index the modules and a wrapper for SemanticVersion.
+ */
 export class I18nHistoryIndex {
   // ================================================================
   private _modref: string = '';

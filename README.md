@@ -1,5 +1,7 @@
 # i18n-circle-model
-Data model for the i18n circle in typescript as package for node.js and angular
+Data model for the i18n circle in typescript as package for node.js and angular. 
+
+Please note, prior to V1.1.0 it is not considered as stable, it is used for other packages in preparation.
 
 ## Installation
 
@@ -52,8 +54,8 @@ console.log("cancel=", i18n.get("default","de","cancel")); // => cancel
 
 // verify, if a key is existent:
 console.log("exists(cancel)? ",
-    i18n.hasKey("default","en","cancel"),// => true
-    i18n.hasKey("default","de","cancel") // => false
+    i18n.hasKey("default","en","cancel"),
+    i18n.hasKey("default","de","cancel")
 );
 
 
@@ -71,7 +73,7 @@ console.log("save=", lngCache.get("save")); // => save
 // verify, if a key is existent:
 console.log("exists(save)? ",
     i18n.hasKey("default","en","save"),// => true
-    i18n.hasKey("default","de","save"),// => false
+    i18n.hasKey("default","de","save"),// => falsae
     lngCache.hasKey('save')//=false
 );
 
