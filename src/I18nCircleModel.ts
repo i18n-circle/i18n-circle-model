@@ -1,34 +1,55 @@
-import { Observable, Subject, Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { I18nCache } from './I18nCache';
 import { I18nChangeAction, I18nChangeActionType } from './I18nChangeAction';
 import { I18nContext } from './I18nContext';
 import { I18nOneModule } from './I18nOneModule';
+import { I18nOneProject } from './I18nOneProject';
 
 export class I18nCircleModel {
-  private modules: any = {};
-  private _createFlag: boolean = true;
+  private defaultProject: I18nOneProject;
+  private otherProjects: any = {};
+
+  public constructor(prjname: string = 'defaultproject') {
+    this.defaultProject = new I18nOneProject(prjname);
+  }
+
+  public addProject(prjname: string, prjdata: any): I18nOneProject {
+    const context: I18nContext = I18nContext.getContext(prjname);
+    const prj: I18nOneProject = I18nOneProject.createFromData(prjname, prjdata, context);
+    this.otherProjects[prjname] = prj;
+    return prj;
+  }
+  public hasProject(prjname: string): boolean {
+    if (this.otherProjects.hasOwnProperty(prjname)) {
+      return true;
+    }
+    if (this.defaultProject.defaultContext.hasProject(prjname)) {
+      return true;
+    }
+    return false;
+  }
+  public getProject(prjname: string): I18nOneProject {
+    if (this.otherProjects.hasOwnProperty(prjname)) {
+      const prj: I18nOneProject = this.otherProjects[prjname];
+      return prj;
+    }
+    if (this.defaultProject.defaultContext.hasProject(prjname)) {
+      return this.defaultProject;
+    }
+    return this.addProject(prjname, {});
+  }
+
   public get createFlag(): boolean {
-    return this._createFlag;
+    return this.defaultProject.createFlag;
   }
   public set createFlag(flag: boolean) {
-    if (this._createFlag !== flag) {
-      I18nChangeAction.publishChange(
-        I18nChangeActionType.CREATE_FLAG,
-        flag ? 'Activating Changes in Language Module' : 'Deactivation Changes in Language Module',
-        this.defaultContext,
-        'I18nCircleModel.createFlag',
-        this._createFlag ? 'true' : 'false',
-        flag ? 'true' : 'false',
-      );
-      this._createFlag = flag;
-    }
+    this.defaultProject.createFlag = flag;
   }
-  private _defaultContext: I18nContext = I18nContext.getContext('defaultproject');
   public get defaultContext(): I18nContext {
-    return this._defaultContext;
+    return this.defaultProject.defaultContext;
   }
   public set defaultContext(value: I18nContext) {
-    this._defaultContext = value;
+    this.defaultProject.defaultContext = value;
   }
 
   /**
@@ -38,21 +59,7 @@ export class I18nCircleModel {
    * @returns true if somethng was changed.
    */
   public forceReadAndWrite(readonly: boolean, readAndWrite: boolean): boolean {
-    let change = false;
-    if (readonly) {
-      this.createFlag = false;
-      change = true;
-    } else if (readAndWrite) {
-      this.createFlag = true;
-      change = true;
-    }
-    if (!change) return false;
-    const modrefs: string[] = this.getModuleReferences();
-    modrefs.forEach((modref) => {
-      const mod = this.getModule(modref);
-      mod.createFlag = this.createFlag;
-    });
-    return true;
+    return this.defaultProject.forceReadAndWrite(readonly, readAndWrite);
   }
 
   /**
@@ -62,23 +69,11 @@ export class I18nCircleModel {
    * @returns the newly added module itself
    */
   public addModule(modref: string, moddata: any): I18nOneModule {
-    const mod: I18nOneModule = I18nOneModule.createFromData(modref, moddata, this.defaultContext.extendProject(modref));
-    this.modules[modref] = mod;
-    return mod;
+    return this.defaultProject.addModule(modref, moddata);
   }
 
   public getModule(modref: string): I18nOneModule {
-    let mod: I18nOneModule;
-    if (this.modules.hasOwnProperty(modref)) {
-      mod = this.modules[modref];
-    } else {
-      if (this.createFlag) {
-        mod = this.addModule(modref, {});
-      } else {
-        throw new Error('New Modul without createFlag: ' + modref);
-      }
-    }
-    return mod;
+    return this.defaultProject.getModule(modref);
   }
   /**
    * sets or merge a language collection of key/value-pairs
@@ -88,19 +83,14 @@ export class I18nCircleModel {
    * @param lngmap - the javascript object to initialize.
    */
   public addLanguage(modref: string, lngkey: string, lngdata: any): void {
-    try {
-      const mod: I18nOneModule = this.getModule(modref);
-      mod.addLanguage(lngkey, lngdata, this.createFlag);
-    } catch (error) {
-      // TODO console.warn(error);
-    }
+    this.defaultProject.addLanguage(modref, lngkey, lngdata);
   }
   /**
    *
    * @returns a list of module references
    */
   public getModuleReferences(): string[] {
-    return Object.keys(this.modules);
+    return this.defaultProject.getModuleReferences();
   }
 
   /**
@@ -111,30 +101,11 @@ export class I18nCircleModel {
    * @returns the language value if existent or the key if not.
    */
   public get(modref: string, lngkey: string, key: string): string {
-    let mod: I18nOneModule;
-    let val: string;
-    if (this.modules.hasOwnProperty(modref)) {
-      mod = this.modules[modref];
-      val = mod.getOrCreateItem(lngkey, key);
-      return val;
-    }
-    if (!this.createFlag) {
-      return key;
-    }
-    mod = this.addModule(modref, {});
-    mod.addLanguage(lngkey, {});
-    val = mod.getOrCreateItem(lngkey, key);
-    return val;
+    return this.defaultProject.get(modref, lngkey, key);
   }
 
   public hasKey(modref: string, lngkey: string, key: string): boolean {
-    try {
-      const mod: I18nOneModule = this.getModule(modref);
-      return mod ? mod.hasKey(lngkey, key) : false;
-    } catch (error) {
-      // TODO console.warn(error);
-      return false;
-    }
+    return this.defaultProject.hasKey(modref, lngkey, key);
   }
 
   /**
@@ -145,8 +116,7 @@ export class I18nCircleModel {
    * @returns A new I18nCache
    */
   public getLanguageCache(modref: string, lngkey: string): I18nCache | null {
-    const mod: I18nOneModule = this.getModule(modref);
-    return mod.getLanguageCache(modref, lngkey, this.createFlag ? this : null);
+    return this.defaultProject.getLanguageCache(modref, lngkey, this.createFlag ? this : null);
   }
 
   private static changeSubject: Subject<I18nChangeAction> | undefined;

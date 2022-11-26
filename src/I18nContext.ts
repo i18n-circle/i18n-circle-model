@@ -47,6 +47,9 @@ export class I18nContext {
   public getCurrentContext(): I18nContext {
     return Object.assign({} as I18nContext, this);
   }
+  public hasProject(prjname: string): boolean {
+    return this.contextProject === prjname;
+  }
   /**
    * Setup a new context object
    * @param project the project identifier

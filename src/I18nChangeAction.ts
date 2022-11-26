@@ -17,6 +17,7 @@ export enum I18nChangeActionType {
   SET_ITEM,
   DELETE_ITEM,
   ADD_LANGUAGE,
+  CREATE_PROJECT,
 }
 
 /**

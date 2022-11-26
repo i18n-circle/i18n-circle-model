@@ -10,8 +10,8 @@ var flagNewText: boolean = false;
 var i18nActionMessages: I18nCircleModel = new I18nCircleModel();
 i18nActionMessages.defaultContext = I18nContext.getContext('I18n-Circle');
 i18nActionMessages.addModule('I18n-Circle-Model', {
-  semanticVersion: 'V0.0.9',
-  internalVersion: 1,
+  semanticVersion: 'V0.0.10',
+  internalVersion: 2,
   status: 1,
   createFlag: true,
   languages: {
@@ -22,9 +22,9 @@ i18nActionMessages.addModule('I18n-Circle-Model', {
       'Set item value for one key': 'Set item value for one key',
       'Module created': 'Module created',
       'Deactivation Changes in OneModule': 'Deactivation Changes in OneModule',
-      'Deactivation Changes in Language Module': 'Deactivation Changes in Language Module',
+      'Deactivation Changes in Project': 'Deactivation Changes in Project',
       'Activating Changes in OneModule': 'Activating Changes in OneModule',
-      'Activating Changes in Language Module': 'Activating Changes in Language Module',
+      'Activating Changes in Project': 'Activating Changes in Project',
       'Added the key to the default language': 'Added the key to the default language',
     },
     defaultLanguage: 'en',
@@ -53,7 +53,7 @@ describe('I18nCircleModel', () => {
   afterAll(() => {
     // console.log("tmpActions=",tmpActions);
     if (flagNewText) {
-      console.log('i18n collected messages:', i18nActionMessages.getModule('I18n-Circle-Model').getModule());
+      console.log('i18n collected messages:', i18nActionMessages.getModule('I18n-Circle-Model').getModuleItem());
     }
   });
 
@@ -108,10 +108,10 @@ describe('I18nCircleModel', () => {
       'SET_ITEM: [defaultproject=>modref01=>es=>goodbye]I18nOneLanguage.setItem(=>adiós)=Set item value for one key',
       'MODULE_CREATED: [defaultproject=>modref01=>=>]I18nOneModule.constructor(=>test02b__V0.1.0__2)=Module created',
     ]);
-    expect(mod1.getModule()).toStrictEqual(mod01);
+    expect(mod1.getModuleItem()).toStrictEqual(mod01);
     var mod2 = i18n.getModule('modref01');
     expect(mod2).toBeTruthy();
-    expect(mod2.getModule()).toStrictEqual(mod01);
+    expect(mod2.getModuleItem()).toStrictEqual(mod01);
     // console.log("56-modcreate:",lastSteps(0));
     expect(lastSteps(0)).toHaveLength(15); // mod01 has 15 entries
     var mod3 = i18n.getModule('modref03');
@@ -129,7 +129,7 @@ describe('I18nCircleModel', () => {
     expect(lastSteps(0)).toHaveLength(15 + 4); // mod01 has 15+4 entries
     mod3.createFlag = true;
     expect(lastSteps(0)).toHaveLength(15 + 4); // mod01 has 15+4 entries
-    expect(mod3.getModule()).toStrictEqual({
+    expect(mod3.getModuleItem()).toStrictEqual({
       internalName: 'modref03__V0.0.1__1',
       semanticVersion: 'V0.0.1',
       internalVersion: 1,
@@ -146,7 +146,7 @@ describe('I18nCircleModel', () => {
     expect(lastSteps(1)).toStrictEqual([
       'ADD_LANGUAGE: [defaultproject=>modref03=>=>]I18nLanguages.addLanguage(=>en)=Language added to Module',
     ]);
-    expect(mod3.getModule()).toStrictEqual({
+    expect(mod3.getModuleItem()).toStrictEqual({
       internalName: 'modref03__V0.0.1__1',
       semanticVersion: 'V0.0.1',
       internalVersion: 1,
@@ -173,8 +173,8 @@ describe('I18nCircleModel', () => {
     var mod1 = i18n.addModule('modref01', mod01);
     expect(lastSteps(0)).toHaveLength(15); // mod01 has 15 entries
     expect(mod1).toBeTruthy();
-    expect(Object.keys(mod1.getModule()).sort()).toStrictEqual(Object.keys(mod01).sort());
-    expect(mod1.getModule()).toStrictEqual(mod01);
+    expect(Object.keys(mod1.getModuleItem()).sort()).toStrictEqual(Object.keys(mod01).sort());
+    expect(mod1.getModuleItem()).toStrictEqual(mod01);
     expect(mod1.createFlag).toBeTruthy();
     expect(lastSteps(0)).toHaveLength(15); // mod01 has 15 entries
     mod1.createFlag = false;
@@ -185,9 +185,7 @@ describe('I18nCircleModel', () => {
     expect(mod1.createFlag).toBeFalsy();
     i18n.createFlag = false;
     expect(lastSteps(0)).toHaveLength(15 + 2); // mod01 has 15 entries
-    expect(lastSteps(1)).toStrictEqual([
-      'CREATE_FLAG: [defaultproject=>=>=>]I18nCircleModel.createFlag(true=>false)=Deactivation Changes in Language Module',
-    ]);
+    // console.log(lastSteps(3));
     expect(i18n.createFlag).toBeFalsy();
 
     expect(i18n.hasKey('modref01', 'de', 'logon')).toBeTruthy();
@@ -213,7 +211,7 @@ describe('I18nCircleModel', () => {
     i18n.createFlag = true;
     expect(lastSteps(0)).toHaveLength(15 + 2 + 2); // mod01 has 15 entries
     expect(lastSteps(1)).toStrictEqual([
-      'CREATE_FLAG: [defaultproject=>=>=>]I18nCircleModel.createFlag(false=>true)=Activating Changes in Language Module',
+      'CREATE_FLAG: [defaultproject=>=>=>]I18nOneProject.createFlag(false=>true)=Activating Changes in Project',
     ]);
     expect(i18n.createFlag).toBeTruthy();
 
@@ -257,7 +255,7 @@ describe('I18nCircleModel', () => {
     var mod4 = i18n.getModule('modref04');
     expect(mod4).toBeTruthy();
     expect(mod4.createFlag).toBeTruthy();
-    // console.log(JSON.stringify(mod4.getModule()));
+    // console.log(JSON.stringify(mod4.getModuleItem()));
     expect(i18n.hasKey('modref04', 'en', 'jump')).toBeTruthy(); // autocreate
   });
 
@@ -268,7 +266,7 @@ describe('I18nCircleModel', () => {
     var mod1 = i18n.addModule('modref01', mod01);
     expect(lastSteps(0)).toHaveLength(15); // mod01 has 15 entries
     expect(mod1).toBeTruthy();
-    expect(mod1.getModule()).toStrictEqual(mod01);
+    expect(mod1.getModuleItem()).toStrictEqual(mod01);
 
     let cache_de = i18n.getLanguageCache('modref01', 'de');
     expect(lastSteps(0)).toHaveLength(15); // mod01 has 15 entries
@@ -289,8 +287,8 @@ describe('I18nCircleModel', () => {
       'SET_ITEM: [defaultproject=>modref01=>en=>new stuff]I18nOneLanguage.setItem(=>new stuff)=Set item value for one key',
       'CREATE_DEFAULT_ENTRY: [defaultproject=>modref01=>en=>new stuff]I18nLanguages.getOrCreateItem(=>new stuff)=Added the key to the default language',
     ]);
-    // console.log("703",JSON.stringify(mod1.getModule(),undefined,2))
-    expect(mod1.getModule()).toStrictEqual({
+    // console.log("703",JSON.stringify(mod1.getModuleItem(),undefined,2))
+    expect(mod1.getModuleItem()).toStrictEqual({
       internalName: 'test02b__V0.1.0__2',
       semanticVersion: 'V0.1.0',
       internalVersion: 2,

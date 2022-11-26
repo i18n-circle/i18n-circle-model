@@ -124,7 +124,7 @@ export class I18nOneModule extends I18nHistoryIndex {
    * gets the module with all languages as javascript object
    * @returns a javascript object
    */
-  public getModule(): any {
+  public getModuleItem(): any {
     return {
       internalName: this.internalName,
       semanticVersion: this.semanticVersion,

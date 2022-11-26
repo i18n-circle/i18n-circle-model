@@ -194,7 +194,7 @@ describe('I18nOneModule', () => {
       '[test02b.en=>test02b.es]: DEL_KEY(goodbye)',
     ]);
     // console.log(516,oneM.getAllItems(),actionlist);
-    expect(oneM.getModule()).toStrictEqual({
+    expect(oneM.getModuleItem()).toStrictEqual({
       internalName: 'test02b__V0.1.0__2',
       semanticVersion: 'V0.1.0',
       internalVersion: 2,
