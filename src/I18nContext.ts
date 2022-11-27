@@ -8,6 +8,10 @@ export class I18nContext {
   protected contextKey: string | undefined;
   protected constructor() {}
 
+  public get projectName(): string {
+    return this.contextProject || '';
+  }
+
   public contextToString(): string {
     let tmp: string = '[';
     tmp += (this.contextProject || '') + '=>';

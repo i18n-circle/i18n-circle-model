@@ -38,6 +38,11 @@ export class I18nCircleModel {
     }
     return this.addProject(prjname, {});
   }
+  public getProjectList(): string[] {
+    const result: string[] = [this.defaultProject.defaultContext.projectName];
+    result.concat(Object.keys(this.otherProjects));
+    return result;
+  }
 
   public get createFlag(): boolean {
     return this.defaultProject.createFlag;
