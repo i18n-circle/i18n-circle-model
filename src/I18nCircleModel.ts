@@ -13,6 +13,13 @@ export class I18nCircleModel {
     this.defaultProject = new I18nOneProject(prjname);
   }
 
+  public setDefaultProject(prjname: string, prjdata: any): I18nOneProject {
+    const context: I18nContext = I18nContext.getContext(prjname);
+    const prj: I18nOneProject = I18nOneProject.createFromData(prjname, prjdata, context);
+    this.defaultProject = prj;
+    return prj;
+  }
+
   public addProject(prjname: string, prjdata: any): I18nOneProject {
     const context: I18nContext = I18nContext.getContext(prjname);
     const prj: I18nOneProject = I18nOneProject.createFromData(prjname, prjdata, context);
