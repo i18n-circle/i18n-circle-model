@@ -70,7 +70,7 @@ export class I18nOneProject {
     prj.createFlag = true;
     if (typeof data.modules !== 'undefined') {
       Object.keys(data.modules).forEach((mod) => {
-        if (data.modules.hasOwnProprty(mod)) {
+        if (data.modules.hasOwnProperty(mod)) {
           prj.addModule(mod, data.modules[mod]);
         }
       });
