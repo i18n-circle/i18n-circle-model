@@ -3,6 +3,8 @@ Data model for the i18n circle in typescript as package for node.js and angular.
 
 Please note, prior to V1.1.0 it is not considered as stable, it is used for other packages in preparation.
 
+Status: node.js example adapted, working. import in  angular.js via ng-packagr  not working.
+
 ## Installation
 
 ```bash
@@ -13,7 +15,7 @@ npm i @i18n-circle/i18n-circle-model
 
 ### nodejs(File index.js)
 ```js
-const I18nCircleModel =  require('@i18n-circle/i18n-circle-model').I18nCircleModel;
+const I18nCircleModel =  require('@i18n-circle/i18n-circle-model/dist/es5').I18nCircleModel;
 
 const mod_data = { // some test data
     internalName: 'default__V0.0.1__1',
@@ -78,7 +80,7 @@ console.log("exists(save)? ",
 );
 
 // show and verify current snapshot:
-console.log("i18n.default(Module)=",JSON.stringify(mod.getModule(),undefined,2));
+console.log("i18n.default(Module)=",JSON.stringify(mod.getModuleItem(),undefined,2));
 ```
 
 ```bash
