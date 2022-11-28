@@ -22,7 +22,9 @@ export class I18nCache {
    * @param modref the module reference
    * @param lngkey the language key
    * @param onelng the key value javascript object
+   * @param context the related language context.
    * @param i18nCircle if not null, it's an active createflag
+   * @param subject the parent subject to track changes there
    */
   constructor(
     modref: string,
@@ -57,7 +59,7 @@ export class I18nCache {
     });
   }
   /**
-   *
+   * ue local cache providing values. if not existent the i18n object is asked to create
    * @param key the key in the key/value map.
    * @returns the value if found or the key if not
    */
@@ -70,9 +72,18 @@ export class I18nCache {
     }
     return key;
   }
+  /**
+   *
+   * @param key the key to look for
+   * @returns true if in this cache.
+   */
   public hasKey(key: string): boolean {
     return this.lngmap.hasOwnProperty(key);
   }
+  /**
+   *
+   * @returns the size of the used cache
+   */
   public getSize(): number {
     return Object.keys(this.lngmap).length;
   }
