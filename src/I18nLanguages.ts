@@ -14,9 +14,15 @@ import { I18nChangeAction, I18nChangeActionType } from './I18nChangeAction';
 export class I18nLanguages {
   private lngs: any = {};
   private _defaultLng: string = 'en';
+  /**
+   * gets the default language
+   */
   public get defaultLng(): string {
     return this._defaultLng;
   }
+  /**
+   * sets the default aguage and reported as a change.
+   */
   public set defaultLng(value: string) {
     if (this._defaultLng !== value) {
       I18nChangeAction.publishChange(

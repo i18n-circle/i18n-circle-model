@@ -92,12 +92,7 @@ export class I18nContext {
    * @throws invalid context parameter definition
    */
   public getCurrentContext(): I18nContext {
-    return I18nContext.getContext(
-      this.contextProject,
-      this.contextModule,
-      this.contextLanguage,
-      this.contextKey
-    )
+    return I18nContext.getContext(this.contextProject, this.contextModule, this.contextLanguage, this.contextKey);
   }
   /**
    * Setup a new context object
@@ -116,53 +111,49 @@ export class I18nContext {
     context.contextKey = key;
     if (!this.isValidContext(context)) {
       // console.error("invalid",context.contextToString());
-      throw new Error("Invalid Context parameter definition");
+      throw new Error('Invalid Context parameter definition');
     }
     return context;
   }
-  public static string2Context(scon: string): I18nContext|null {
+  public static string2Context(scon: string): I18nContext | null {
     const p1 = parseString.exec(scon);
-    if (p1==null || p1[1]=='') {
+    if (p1 == null || p1[1] === '') {
       return null;
     }
     const context = this.getContext(p1[1]);
-    if (p1[2]!='') {
+    if (p1[2] !== '') {
       context.contextModule = p1[2];
-      if (p1[3]!='') {
+      if (p1[3] !== '') {
         context.contextLanguage = p1[3];
-        if (p1[4]!='') {
+        if (p1[4] !== '') {
           context.contextKey = p1[4];
         }
       } else {
-        if (p1[4]!='') {
+        if (p1[4] !== '') {
           return null;
         }
       }
     } else {
-      if (p1[3]!=''||p1[4]!='') {
+      if (p1[3] !== '' || p1[4] !== '') {
         return null;
       }
     }
     // console.log(p1,context);
     return context;
   }
-  public static isValidContext(chcon:I18nContext) : boolean {
-    if (typeof chcon.contextProject === 'undefined'
-        || chcon.contextProject === '') {
+  public static isValidContext(chcon: I18nContext): boolean {
+    if (typeof chcon.contextProject === 'undefined' || chcon.contextProject === '') {
       return false;
     }
-    if (typeof chcon.contextModule === 'undefined'
-      || chcon.contextModule==='') {
-      if ( (chcon.contextLanguage||'')!=''
-        || (chcon.contextKey||'')!='') {
-          return false;
-        } else{
-          return true;
-        }
+    if (typeof chcon.contextModule === 'undefined' || chcon.contextModule === '') {
+      if ((chcon.contextLanguage || '') !== '' || (chcon.contextKey || '') !== '') {
+        return false;
+      } else {
+        return true;
+      }
     }
-    if (typeof chcon.contextLanguage === 'undefined'
-        || chcon.contextLanguage===''){
-      if ((chcon.contextKey||'')!='') {
+    if (typeof chcon.contextLanguage === 'undefined' || chcon.contextLanguage === '') {
+      if ((chcon.contextKey || '') !== '') {
         return false;
       } else {
         return true;
