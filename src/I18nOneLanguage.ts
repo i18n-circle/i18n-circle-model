@@ -193,7 +193,7 @@ export class I18nOneLanguage {
   /**
    * @constructor
    *
-   * @param one - javascirpt object toinitialize via setItems
+   * @param one - javascirpt object to initialize via setItems
    */
   constructor(one: any, context: I18nContext) {
     this.context = context;

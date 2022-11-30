@@ -12,6 +12,9 @@ import { I18nChangeAction, I18nChangeActionType } from './I18nChangeAction';
  */
 
 export class I18nLanguages {
+  getLanguagesKeys(): string[] {
+    return Object.keys(this.lngs);
+  }
   private lngs: any = {};
   private _defaultLng: string = 'en';
   /**

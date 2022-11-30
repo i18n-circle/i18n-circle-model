@@ -6,6 +6,7 @@ import { I18nHistoryIndex } from './I18nHistoryIndex';
 import { I18nIndexStatus } from './I18nIndexStatus';
 import { I18nContext } from './I18nContext';
 import { I18nChangeAction, I18nChangeActionType } from './I18nChangeAction';
+import { I18nModuleDisplayItem } from './I18nModuleDisplayItem';
 
 /**
  * @class I18nOneModule one language module
@@ -135,6 +136,13 @@ export class I18nOneModule extends I18nHistoryIndex {
     };
   }
 
+  public getModuleDisplayItem(): I18nModuleDisplayItem {
+    return {
+      modId: this.internalName,
+      modLngKeys: this.getLanguagesKeys(),
+    };
+  }
+
   /**
    * get one item via lngkey and key.
    * If key is not found, it tries to create an entry in the default language (including history)
@@ -177,6 +185,10 @@ export class I18nOneModule extends I18nHistoryIndex {
    */
   public hasLanguage(lngkey: string): boolean {
     return this.languages == null ? false : this.languages.hasLanguage(lngkey);
+  }
+
+  public getLanguagesKeys(): string[] {
+    return this.languages == null ? [] : this.languages.getLanguagesKeys();
   }
   /**
    * hasKey checks if the language and the key is existent in that language.

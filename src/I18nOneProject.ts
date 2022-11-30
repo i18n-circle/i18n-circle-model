@@ -2,7 +2,9 @@ import { I18nCache } from './I18nCache';
 import { I18nChangeAction, I18nChangeActionType } from './I18nChangeAction';
 import { I18nCircleModel } from './I18nCircleModel';
 import { I18nContext } from './I18nContext';
+import { I18nModuleDisplayItem } from './I18nModuleDisplayItem';
 import { I18nOneModule } from './I18nOneModule';
+import { I18nProjectDisplayItem } from './I18nProjectDisplayItem';
 
 export class I18nOneProject {
   private modules: any = {};
@@ -51,7 +53,29 @@ export class I18nOneProject {
     all.createFlag = this.createFlag;
     return all;
   }
-
+  /*
+   * getting the current display representation
+   * @param lngkey language key
+   * @returns get current set of display data
+   */
+  public getProjectDisplayItem(lngkey: string): I18nProjectDisplayItem {
+    return {
+      prjId: this.defaultContext.projectName,
+      prjShort: this.get('.project', lngkey, 'project shortname'),
+      prjDescription: this.get('.project', lngkey, 'project description'),
+      prjModuleNames: this.getModuleReferences(),
+    };
+  }
+  public setProjectDisplayItem(lngkey: string, item: I18nProjectDisplayItem) {
+    const mod = this.getModule('.project');
+    mod.setItem(lngkey, 'project shortname', item.prjShort);
+    mod.setItem(lngkey, 'project description', item.prjDescription);
+    // rest needs to be adapted in another war.
+  }
+  public getModuleDisplayItem(modname: string): I18nModuleDisplayItem {
+    const mod = this.getModule(modname);
+    return mod.getModuleDisplayItem();
+  }
   /**
    *
    * @param data a saved javascript object to initialize the module.

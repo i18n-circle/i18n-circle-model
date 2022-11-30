@@ -4,6 +4,7 @@ import { I18nChangeAction, I18nChangeActionType } from './I18nChangeAction';
 import { I18nContext } from './I18nContext';
 import { I18nOneModule } from './I18nOneModule';
 import { I18nOneProject } from './I18nOneProject';
+import { I18nProjectDisplayItem } from './I18nProjectDisplayItem';
 
 export class I18nCircleModel {
   private defaultProject: I18nOneProject;
@@ -48,6 +49,14 @@ export class I18nCircleModel {
   public getProjectList(): string[] {
     const result: string[] = [this.defaultProject.defaultContext.projectName];
     result.concat(Object.keys(this.otherProjects));
+    return result;
+  }
+  public getProjectDisplayList(prjname: string, lngkey: string): I18nProjectDisplayItem[] {
+    const result: I18nProjectDisplayItem[] = [];
+    this.getProjectList().forEach((value: string) => {
+      const prj = this.getProject(value);
+      result.push(prj.getProjectDisplayItem(lngkey));
+    });
     return result;
   }
 
