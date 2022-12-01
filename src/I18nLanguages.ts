@@ -12,11 +12,10 @@ import { I18nChangeAction, I18nChangeActionType } from './I18nChangeAction';
  */
 
 export class I18nLanguages {
-  getLanguagesKeys(): string[] {
-    return Object.keys(this.lngs);
-  }
   private lngs: any = {};
   private _defaultLng: string = 'en';
+  private context: I18nContext;
+
   /**
    * gets the default language
    */
@@ -24,7 +23,7 @@ export class I18nLanguages {
     return this._defaultLng;
   }
   /**
-   * sets the default aguage and reported as a change.
+   * sets the default language and reported as a change.
    */
   public set defaultLng(value: string) {
     if (this._defaultLng !== value) {
@@ -39,8 +38,6 @@ export class I18nLanguages {
       this._defaultLng = value;
     }
   }
-  private context: I18nContext;
-
   /**
    *
    * @param modref the module reference
@@ -60,6 +57,13 @@ export class I18nLanguages {
     } else {
       return null;
     }
+  }
+  /**
+   *
+   * @returns an array of used language keys,
+   */
+  getLanguagesKeys(): string[] {
+    return Object.keys(this.lngs);
   }
 
   /**
@@ -139,6 +143,14 @@ export class I18nLanguages {
     if (this.hasKey(lngkey, key)) {
       return this.lngs[lngkey].getItem(key);
     } else {
+      I18nChangeAction.publishChange(
+        I18nChangeActionType.GET_ITEM_KEY_NOT_FOUND,
+        'Get item failed.',
+        this.context.extendModule(lngkey).extendLanguage(key),
+        'I18nLanguages.getItem',
+        undefined,
+        key,
+      );
       return key;
     }
   }
@@ -176,10 +188,20 @@ export class I18nLanguages {
    * @param value - The text in the current language.
    */
   public setItem(lngkey: string, key: string, value: string): void {
+    // console.log("Lngs-setIem-1: lng:",lngkey,"key:",key,"value:",value);
     if (!this.lngs.hasOwnProperty(lngkey)) {
       this.lngs[lngkey] = new I18nOneLanguage({}, this.context.extendModule(lngkey));
+      I18nChangeAction.publishChange(
+        I18nChangeActionType.ADD_LANGUAGE,
+        'Added Language during setItem',
+        this.context.extendModule(lngkey).extendLanguage(key),
+        'I18nLanguages.setItem',
+        undefined,
+        key,
+      );
     }
-    this.lngs[lngkey].setItem(key, value);
+    const lng: I18nOneLanguage = this.lngs[lngkey];
+    lng.setItem(key, value);
   }
   /**
    *
@@ -235,7 +257,7 @@ export class I18nLanguages {
    * merge all items with a second javascript object
    *
    * @remarks
-   * Keys in the parameter two will overwrite existing key/value pairs in the existing one.
+   * Keys in the parameter other will overwrite existing key/value pairs in the existing one.
    *
    * @param lngkey - which language to merge in.
    * @param other - the OneLanugage or key/value pairs object to merge.

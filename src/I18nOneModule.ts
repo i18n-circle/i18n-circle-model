@@ -16,6 +16,10 @@ export class I18nOneModule extends I18nHistoryIndex {
   private languages: I18nLanguages;
   private context: I18nContext;
 
+  /**
+   *
+   * @returns gets an representation of the Hinstory Index (parent class)
+   */
   public getHistoryIndex(): I18nHistoryIndex {
     return this;
   }
@@ -39,7 +43,7 @@ export class I18nOneModule extends I18nHistoryIndex {
     }
   }
   /**
-   *
+   * @param prjname current project name
    * @param modref the module reference
    * @param lngkey the language key
    * @param i18n i not null, then new key will be created in the default language
@@ -141,6 +145,9 @@ export class I18nOneModule extends I18nHistoryIndex {
     };
   }
 
+  /**
+   * @returns a module display item with modid and modLngKeys
+   */
   public getModuleDisplayItem(): I18nModuleDisplayItem {
     return {
       modId: this.internalName,
@@ -167,6 +174,14 @@ export class I18nOneModule extends I18nHistoryIndex {
         return this.languages.getItem(lngkey, key);
       }
     }
+    I18nChangeAction.publishChange(
+      I18nChangeActionType.NO_LANGUAGES_OBJECT_KEY_NOT_FOUND,
+      'Get or create item failed.',
+      this.context.extendModule(lngkey).extendLanguage(key),
+      'I18nOneModule.getOrCreateItem',
+      undefined,
+      key,
+    );
     return key;
   }
   /**
@@ -179,7 +194,23 @@ export class I18nOneModule extends I18nHistoryIndex {
     if (this.languages == null) {
       if (this.createFlag || forceCreate) {
         this.languages = new I18nLanguages({}, this.context);
+        I18nChangeAction.publishChange(
+          I18nChangeActionType.ADD_LANGUAGE_NEW_LANGUAGES,
+          'Get or create item failed.',
+          this.context.extendModule(lngkey),
+          'I18nOneModule.addLanguage',
+          undefined,
+          lngkey,
+        );
       } else {
+        I18nChangeAction.publishChange(
+          I18nChangeActionType.ADD_LANGUAGE_NO_LANGUAGES_OBJECT,
+          'Get or create item failed.',
+          this.context.extendModule(lngkey).extendLanguage(lngkey),
+          'I18nOneModule.addLanguage',
+          undefined,
+          lngkey,
+        );
         return;
       }
     }
@@ -192,6 +223,10 @@ export class I18nOneModule extends I18nHistoryIndex {
     return this.languages == null ? false : this.languages.hasLanguage(lngkey);
   }
 
+  /**
+   *
+   * @returns an array of used language keys,
+   */
   public getLanguagesKeys(): string[] {
     return this.languages == null ? [] : this.languages.getLanguagesKeys();
   }
@@ -213,7 +248,17 @@ export class I18nOneModule extends I18nHistoryIndex {
    */
   public setItem(lngkey: string, key: string, value: string): void {
     if (this.languages != null) {
+      // console.log("OneM-setItem-1: lng:",lngkey,"key:",key,"value:",value);
       this.languages.setItem(lngkey, key, value);
+    } else {
+      I18nChangeAction.publishChange(
+        I18nChangeActionType.SET_ITEM_NO_LANGUAGES_OBJECT,
+        'Set item failed, no languages object.',
+        this.context.extendModule(lngkey).extendLanguage(lngkey),
+        'I18nOneModule.setItem',
+        undefined,
+        lngkey,
+      );
     }
   }
   /**
@@ -282,7 +327,7 @@ export class I18nOneModule extends I18nHistoryIndex {
    * @param modref the external model reference to use
    * @returns a list of actions to achieve consistency.
    */
-  public checkConsistency(modref: string): I18nTranslateActions {
-    return this.languages.compareLanguages(modref, this.languages, modref);
+  public checkConsistency(modref: string): I18nTranslateActions | null {
+    return this.languages?.compareLanguages(modref, this.languages, modref) || null;
   }
 }

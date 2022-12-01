@@ -7,9 +7,6 @@ import { I18nOneModule } from './I18nOneModule';
 import { I18nProjectDisplayItem } from './I18nProjectDisplayItem';
 
 export class I18nOneProject {
-  gerProjectName(): string {
-    return this.defaultContext.projectName;
-  }
   private modules: any = {};
   private _createFlag: boolean = true;
   public get createFlag(): boolean {
@@ -36,9 +33,20 @@ export class I18nOneProject {
   public set defaultContext(value: I18nContext) {
     this._defaultContext = value;
   }
-
+  /**
+   *
+   * @param prjname project name to set.
+   */
   public constructor(prjname: string = 'defaultproject') {
     this._defaultContext = I18nContext.getContext(prjname);
+  }
+
+  /**
+   *
+   * @returns the current project name.
+   */
+  getProjectName(): string {
+    return this.defaultContext.projectName;
   }
   /**
    * gets the project with all modules as javascript object
@@ -69,12 +77,22 @@ export class I18nOneProject {
       prjModuleNames: this.getModuleReferences(),
     };
   }
+  /**
+   *
+   * @param lngkey the language key to address
+   * @param item the display item to set.
+   */
   public setProjectDisplayItem(lngkey: string, item: I18nProjectDisplayItem) {
     const mod = this.getModule('.project');
     mod.setItem(lngkey, 'project shortname', item.prjShort);
     mod.setItem(lngkey, 'project description', item.prjDescription);
-    // rest needs to be adapted in another war.
+    // rest needs to be adapted in another way.
   }
+  /**
+   *
+   * @param modname name of the module to display
+   * @returns the module display item.
+   */
   public getModuleDisplayItem(modname: string): I18nModuleDisplayItem {
     const mod = this.getModule(modname);
     return mod.getModuleDisplayItem();
@@ -149,6 +167,14 @@ export class I18nOneProject {
       if (this.createFlag) {
         mod = this.addModule(modref, {});
       } else {
+        I18nChangeAction.publishChange(
+          I18nChangeActionType.NO_GET_MODULE_NO_CREATE_FLAG,
+          'GSet one module failed, no create flag',
+          this.defaultContext,
+          'I18nOneProject.getModule',
+          undefined,
+          modref,
+        );
         throw new Error('New Modul without createFlag: ' + modref);
       }
     }
@@ -166,7 +192,14 @@ export class I18nOneProject {
       const mod: I18nOneModule = this.getModule(modref);
       mod.addLanguage(lngkey, lngdata, this.createFlag);
     } catch (error) {
-      // TODO console.warn(error);
+      I18nChangeAction.publishChange(
+        I18nChangeActionType.ADD_LANGUAGE_ERROR,
+        'In Project module error during adding a language.',
+        this.defaultContext,
+        'I18nOneProject.addLanguage',
+        modref,
+        lngkey,
+      );
     }
   }
   /**
@@ -201,13 +234,45 @@ export class I18nOneProject {
     return val;
   }
 
+  /**
+   *
+   * @param modref the module reference
+   * @param lngkey langauge key
+   * @param key the key
+   * @param value the value to set
+   */
+  public set(modref: string, lngkey: string, key: string, value: string) {
+    let mod: I18nOneModule;
+    if (this.modules.hasOwnProperty(modref)) {
+      // console.log("OneP-set-1: mod:",modref,"lng:",lngkey,"key:",key,"value:",value);
+      mod = this.modules[modref];
+      mod.setItem(lngkey, key, value);
+      return;
+    }
+    if (!this.createFlag) {
+      // console.log("OneP-set-2: mod:",modref,"lng:",lngkey,"key:",key,"value:",value);
+      I18nChangeAction.publishChange(
+        I18nChangeActionType.SET_ITEM_NO_MODULE_FOUND,
+        'In Project module error during setting an item.',
+        this.defaultContext,
+        'I18nOneProject.set',
+        modref,
+        lngkey,
+      );
+      return;
+    }
+    // console.log("OneP-set-3: mod:",modref,"lng:",lngkey,"key:",key,"value:",value);
+    mod = this.addModule(modref, {});
+    mod.addLanguage(lngkey, {});
+    mod.setItem(lngkey, key, value);
+  }
+
   public hasKey(modref: string, lngkey: string, key: string): boolean {
     try {
       const mod: I18nOneModule = this.getModule(modref);
       return mod ? mod.hasKey(lngkey, key) : false;
     } catch (error) {
-      // TODO console.warn(error);
-      return false;
+      return false; // no error reporting, a false is enough.
     }
   }
 

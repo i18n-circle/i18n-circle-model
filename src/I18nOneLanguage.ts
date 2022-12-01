@@ -19,6 +19,7 @@ export class I18nOneLanguage {
 
   /**
    *
+   * @param prjname name of the project
    * @param modref the module reference
    * @param lngkey the language key
    * @param i18n i not null, then new key will be created in the default language
@@ -31,7 +32,7 @@ export class I18nOneLanguage {
     context: I18nContext,
     i18n: I18nCircleModel | null,
   ): I18nCache {
-    const cache = new I18nCache(prjname, modref, lngkey, this.onelng, context, i18n, this.subject);
+    const cache = new I18nCache(prjname, modref, lngkey, Object.assign({}, this.onelng), context, i18n, this.subject);
     return cache;
   }
 
@@ -45,8 +46,10 @@ export class I18nOneLanguage {
     const existFlag: boolean = this.onelng.hasOwnProperty(key);
     let action: I18nTranslateAction;
     if (existFlag && this.onelng[key] === value) {
+      // console.log("OneL-setItem-1: key:",key,"value:",value,this.onelng);
       return; // no change ==> no history!!
     }
+    // console.log("OneL-setItem-2: key:",key,"value:",value);
     I18nChangeAction.publishChange(
       I18nChangeActionType.SET_ITEM,
       'Set item value for one key',
@@ -194,7 +197,8 @@ export class I18nOneLanguage {
   /**
    * @constructor
    *
-   * @param one - javascirpt object to initialize via setItems
+   * @param one - javascript object to initialize via setItems
+   * @param context - the context to take over.
    */
   constructor(one: any, context: I18nContext) {
     this.context = context;

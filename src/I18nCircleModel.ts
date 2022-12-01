@@ -10,10 +10,20 @@ export class I18nCircleModel {
   private defaultProject: I18nOneProject;
   private otherProjects: any = {};
 
+  /**
+   *
+   * @param prjname name of the default project.
+   */
   public constructor(prjname: string = 'defaultproject') {
     this.defaultProject = new I18nOneProject(prjname);
   }
 
+  /**
+   *
+   * @param prjname project name for the default project
+   * @param prjdata data for initializing the default project
+   * @returns
+   */
   public setDefaultProject(prjname: string, prjdata: any): I18nOneProject {
     const context: I18nContext = I18nContext.getContext(prjname);
     const prj: I18nOneProject = I18nOneProject.createFromData(prjname, prjdata, context);
@@ -21,12 +31,23 @@ export class I18nCircleModel {
     return prj;
   }
 
+  /**
+   *
+   * @param prjname name to add
+   * @param prjdata data to initialize
+   * @returns the project data structure.
+   */
   public addProject(prjname: string, prjdata: any): I18nOneProject {
     const context: I18nContext = I18nContext.getContext(prjname);
     const prj: I18nOneProject = I18nOneProject.createFromData(prjname, prjdata, context);
     this.otherProjects[prjname] = prj;
     return prj;
   }
+  /**
+   *
+   * @param prjname the project name to check
+   * @returns true if existent, false if not.
+   */
   public hasProject(prjname: string): boolean {
     if (this.otherProjects.hasOwnProperty(prjname)) {
       return true;
@@ -36,6 +57,11 @@ export class I18nCircleModel {
     }
     return false;
   }
+  /**
+   *
+   * @param prjname name of the project to find
+   * @returns an existing or a new project.
+   */
   public getProject(prjname: string): I18nOneProject {
     if (this.otherProjects.hasOwnProperty(prjname)) {
       const prj: I18nOneProject = this.otherProjects[prjname];
@@ -46,11 +72,20 @@ export class I18nCircleModel {
     }
     return this.addProject(prjname, {});
   }
+  /**
+   *
+   * @returns the list of project ids
+   */
   public getProjectList(): string[] {
     const result: string[] = [this.defaultProject.defaultContext.projectName];
     result.concat(Object.keys(this.otherProjects));
     return result;
   }
+  /**
+   *
+   * @param lngkey the language key to get the right display
+   * @returns the the display item of a project.
+   */
   public getProjectDisplayList(lngkey: string): I18nProjectDisplayItem[] {
     const result: I18nProjectDisplayItem[] = [];
     this.getProjectList().forEach((value: string) => {
@@ -60,21 +95,34 @@ export class I18nCircleModel {
     return result;
   }
 
+  /**
+   * getting the createflag from the default project
+   */
   public get createFlag(): boolean {
     return this.defaultProject.createFlag;
   }
+  /**
+   * setting the createFlag from the default project
+   */
   public set createFlag(flag: boolean) {
     this.defaultProject.createFlag = flag;
   }
+  /**
+   * getting the defaultContext
+   */
   public get defaultContext(): I18nContext {
     return this.defaultProject.defaultContext;
   }
+  /**
+   * setting the defaultContext
+   */
   public set defaultContext(value: I18nContext) {
     this.defaultProject.defaultContext = value;
   }
 
   /**
    *
+   * @param prj name of the project to use, it' the default project if ''.
    * @param readonly if true, everything is on readonly.
    * @param readAndWrite if readonly false and this is true, all can be changed.
    * @returns true if somethng was changed.
@@ -89,6 +137,7 @@ export class I18nCircleModel {
 
   /**
    *
+   * @param prj name of the project to use, it' the default project if ''.
    * @param modref the reference to the model
    * @param moddata the full data as javascrpt object
    * @returns the newly added module itself
@@ -101,6 +150,12 @@ export class I18nCircleModel {
     }
   }
 
+  /**
+   * gets the module from a project.
+   *
+   * @param prj name of the project to use, it' the default project if ''.
+   * @param modref - the module reference
+   */
   public getModule(prj: string, modref: string): I18nOneModule {
     if (prj === '') {
       return this.defaultProject.getModule(modref);
@@ -111,6 +166,7 @@ export class I18nCircleModel {
   /**
    * sets or merge a language collection of key/value-pairs
    *
+   * @param prj name of the project to use, it' the default project if ''.
    * @param modref - the module reference
    * @param lngkey - the language key e.g. 'en'
    * @param lngmap - the javascript object to initialize.
@@ -123,7 +179,7 @@ export class I18nCircleModel {
     }
   }
   /**
-   *
+   * @param prj name of the project to use, it' the default project if ''.
    * @returns a list of module references
    */
   public getModuleReferences(prj: string = ''): string[] {
@@ -136,6 +192,7 @@ export class I18nCircleModel {
 
   /**
    *
+   * @param prj name of the project to use, it' the default project if ''.
    * @param modref the module reference
    * @param lngkey langauge key
    * @param key the key
@@ -148,14 +205,29 @@ export class I18nCircleModel {
       return this.getProject(prj).get(modref, lngkey, key);
     }
   }
+  /**
+   * @param prj name of the project to use, it' the default project if ''.
+   * @param modref the module reference
+   * @param lngkey the language key
+   * @param key the key to set
+   * @param value the value to set
+   */
   public set(prj: string, modref: string, lngkey: string, key: string, value: string) {
+    // console.log("prj:",prj,"mod:",modref,"lng:",lngkey,"key:",key,"value:",value);
     if (prj === '') {
-      this.defaultProject.getModule(modref).setItem(lngkey, key, value);
+      this.defaultProject.set(modref, lngkey, key, value);
     } else {
-      this.getProject(prj).getModule(modref).setItem(lngkey, key, value);
+      this.getProject(prj).set(modref, lngkey, key, value);
     }
   }
 
+  /**
+   * @param prj name of the project to use, it' the default project if ''.
+   * @param modref the module reference
+   * @param lngkey the language key
+   * @param key the key to check
+   * @returns true if the key is existent in the specified context.
+   */
   public hasKey(prj: string, modref: string, lngkey: string, key: string): boolean {
     if (prj === '') {
       return this.defaultProject.hasKey(modref, lngkey, key);
@@ -165,7 +237,7 @@ export class I18nCircleModel {
   }
 
   /**
-   *
+   * @param prj name of the project to use, it' the default project if ''.
    * @param modref the module reference
    * @param lngkey the language key
    * @param i18n if not null, then new key will be created in the default language
@@ -174,7 +246,7 @@ export class I18nCircleModel {
   public getLanguageCache(prj: string, modref: string, lngkey: string): I18nCache | null {
     if (prj === '') {
       return this.defaultProject.getLanguageCache(
-        this.defaultProject.gerProjectName(),
+        this.defaultProject.getProjectName(),
         modref,
         lngkey,
         this.createFlag ? this : null,
@@ -186,12 +258,20 @@ export class I18nCircleModel {
 
   private static changeSubject: Subject<I18nChangeAction> | undefined;
 
+  /**
+   * Internal function to submit changes.
+   * @param ta an I18nChangeAction to submit
+   */
   public static publishChange(ta: I18nChangeAction): void {
     if (typeof this.changeSubject === 'undefined') {
       this.changeSubject = new Subject<I18nChangeAction>();
     }
     this.changeSubject.next(ta);
   }
+  /**
+   *
+   * @returns a subject to subscribe to the change actions
+   */
   public static subscribeChange(): Subject<I18nChangeAction> {
     if (typeof this.changeSubject === 'undefined') {
       this.changeSubject = new Subject<I18nChangeAction>();

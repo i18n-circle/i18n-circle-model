@@ -26,6 +26,8 @@ i18nActionMessages.addModule('I18n-Circle', 'I18n-Circle-Model', {
       'Activating Changes in OneModule': 'Activating Changes in OneModule',
       'Activating Changes in Project': 'Activating Changes in Project',
       'Added the key to the default language': 'Added the key to the default language',
+      'Get item failed.': 'Get item failed.',
+      'GSet one module failed, no create flag': 'GSet one module failed, no create flag',
     },
     defaultLanguage: 'en',
   },
@@ -203,16 +205,22 @@ describe('I18nCircleModel', () => {
 
     expect(i18n.get('', 'modref04', 'en', 'jump')).toBe('jump');
     expect(i18n.hasKey('', 'modref04', 'en', 'jump')).toBeFalsy(); // no autocreate
-    expect(lastSteps(0)).toHaveLength(15 + 2); // mod01 has no more entries then before/readonly.
+    expect(lastSteps(0)).toHaveLength(15 + 2 + 4); // mod01 has no more entries then before/readonly.
+    expect(lastSteps(4)).toStrictEqual([
+      'GET_ITEM_KEY_NOT_FOUND: [defaultproject=>modref01=>de=>jump]I18nLanguages.getItem(=>jump)=Get item failed.',
+      'GET_ITEM_KEY_NOT_FOUND: [defaultproject=>modref01=>en=>jump]I18nLanguages.getItem(=>jump)=Get item failed.',
+      'GET_ITEM_KEY_NOT_FOUND: [defaultproject=>modref01=>en_US=>jump]I18nLanguages.getItem(=>jump)=Get item failed.',
+      'NO_GET_MODULE_NO_CREATE_FLAG: [defaultproject=>=>=>]I18nOneProject.getModule(=>modref04)=GSet one module failed, no create flag',
+    ]);
 
     mod1.createFlag = true;
-    expect(lastSteps(0)).toHaveLength(15 + 2 + 1); // mod01 has 15 entries
+    expect(lastSteps(0)).toHaveLength(21 + 1); // mod01 has 15 entries
     expect(lastSteps(1)).toStrictEqual([
       'CREATE_FLAG: [defaultproject=>modref01=>=>]I18nOneModule.createFlag(false=>true)=Activating Changes in OneModule',
     ]);
     expect(mod1.createFlag).toBeTruthy();
     i18n.createFlag = true;
-    expect(lastSteps(0)).toHaveLength(15 + 2 + 2); // mod01 has 15 entries
+    expect(lastSteps(0)).toHaveLength(21 + 2); // mod01 has 15 entries
     expect(lastSteps(1)).toStrictEqual([
       'CREATE_FLAG: [defaultproject=>=>=>]I18nOneProject.createFlag(false=>true)=Activating Changes in Project',
     ]);
@@ -220,9 +228,9 @@ describe('I18nCircleModel', () => {
 
     expect(i18n.hasKey('', 'modref01', 'de', 'logon')).toBeTruthy();
     expect(i18n.get('', 'modref01', 'de', 'logon')).toBe('Anmelden');
-    expect(lastSteps(0)).toHaveLength(19); // mod01 has 19 entries
+    expect(lastSteps(0)).toHaveLength(23); // mod01 has 19 entries
     expect(i18n.get('', 'modref01', 'de', 'jump')).toBe('jump');
-    expect(lastSteps(0)).toHaveLength(19 + 2); // mod01 has 19 entries
+    expect(lastSteps(0)).toHaveLength(23 + 2); // mod01 has 19 entries
     expect(lastSteps(2)).toStrictEqual([
       'SET_ITEM: [defaultproject=>modref01=>en=>jump]I18nOneLanguage.setItem(=>jump)=Set item value for one key',
       'CREATE_DEFAULT_ENTRY: [defaultproject=>modref01=>en=>jump]I18nLanguages.getOrCreateItem(=>jump)=Added the key to the default language',
@@ -231,9 +239,9 @@ describe('I18nCircleModel', () => {
     expect(i18n.hasKey('', 'modref01', 'en', 'jump')).toBeTruthy(); // autocreate
     expect(i18n.get('', 'modref01', 'en', 'jump')).toBe('jump');
 
-    expect(lastSteps(0)).toHaveLength(19 + 2); // mod01 has 19+2 entries
+    expect(lastSteps(0)).toHaveLength(23 + 2); // mod01 has 19+2 entries
     expect(i18n.get('', 'modref01', 'en_US', 'fall')).toBe('fall');
-    expect(lastSteps(0)).toHaveLength(19 + 4); // mod01 has 19+4 entries
+    expect(lastSteps(0)).toHaveLength(23 + 4); // mod01 has 19+4 entries
     expect(lastSteps(2)).toStrictEqual([
       'SET_ITEM: [defaultproject=>modref01=>en=>fall]I18nOneLanguage.setItem(=>fall)=Set item value for one key',
       'CREATE_DEFAULT_ENTRY: [defaultproject=>modref01=>en=>fall]I18nLanguages.getOrCreateItem(=>fall)=Added the key to the default language',
@@ -241,9 +249,9 @@ describe('I18nCircleModel', () => {
     expect(i18n.hasKey('', 'modref01', 'en', 'fall')).toBeTruthy(); // autocreate
     expect(i18n.hasKey('', 'modref01', 'en_US', 'fall')).toBeFalsy();
 
-    expect(lastSteps(0)).toHaveLength(23); // mod01 has 19+4 entries
+    expect(lastSteps(0)).toHaveLength(27); // mod01 has 19+4 entries
     expect(i18n.get('', 'modref04', 'en', 'jump')).toBe('jump');
-    expect(lastSteps(0)).toHaveLength(23 + 7); // mod01 has 19+4 entries
+    expect(lastSteps(0)).toHaveLength(27 + 7); // mod01 has 19+4 entries
     // console.log(lastSteps(7));
     expect(lastSteps(7)).toStrictEqual([
       'CREATE_MODULE: [defaultproject=>modref04=>=>]I18nOneModule.createFromData(=>modref04)=Create one module',
@@ -290,6 +298,9 @@ describe('I18nCircleModel', () => {
       'SET_ITEM: [defaultproject=>modref01=>en=>new stuff]I18nOneLanguage.setItem(=>new stuff)=Set item value for one key',
       'CREATE_DEFAULT_ENTRY: [defaultproject=>modref01=>en=>new stuff]I18nLanguages.getOrCreateItem(=>new stuff)=Added the key to the default language',
     ]);
+    cache_de?.set('new stuff', 'Neues Zeug');
+    cache_de?.set('hello', 'hallo');
+    expect(lastSteps(0)).toHaveLength(15 + 2 + 2); // mod01 has 15+2 entries
     // console.log("703",JSON.stringify(mod1.getModuleItem(),undefined,2))
     expect(mod1.getModuleItem()).toStrictEqual({
       internalName: 'test02b__V0.1.0__2',
@@ -309,6 +320,8 @@ describe('I18nCircleModel', () => {
           logon: 'Anmelden',
           logout: 'Abmelden',
           signin: 'Registrieren',
+          hello: 'hallo',
+          'new stuff': 'Neues Zeug',
         },
         es: {
           hello: 'óla',

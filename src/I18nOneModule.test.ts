@@ -185,7 +185,7 @@ describe('I18nOneModule', () => {
       es: { hello: 'óla', goodbye: 'adiós' },
       defaultLanguage: 'en',
     });
-    let actionlist = oneM.checkConsistency('test02b').getTransScript();
+    let actionlist = oneM.checkConsistency('test02b')?.getTransScript() || [];
     expect(actionlist).toStrictEqual([
       '[test02b.en=>test02b.de]: NEW_KEY(hello,hello)',
       '[test02b.en=>test02b.es]: NEW_KEY(logon,logon)',

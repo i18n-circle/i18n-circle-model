@@ -18,6 +18,15 @@ export enum I18nChangeActionType {
   DELETE_ITEM,
   ADD_LANGUAGE,
   CREATE_PROJECT,
+  GET_ITEM_KEY_NOT_FOUND,
+  NO_LANGUAGES_OBJECT,
+  NO_LANGUAGES_OBJECT_KEY_NOT_FOUND,
+  ADD_LANGUAGE_NEW_LANGUAGES,
+  ADD_LANGUAGE_NO_LANGUAGES_OBJECT,
+  SET_ITEM_NO_LANGUAGES_OBJECT,
+  NO_GET_MODULE_NO_CREATE_FLAG,
+  ADD_LANGUAGE_ERROR,
+  SET_ITEM_NO_MODULE_FOUND,
 }
 
 /**
@@ -64,6 +73,24 @@ export class I18nChangeAction extends I18nContext {
         return 'DELETE_ITEM';
       case I18nChangeActionType.ADD_LANGUAGE:
         return 'ADD_LANGUAGE';
+      case I18nChangeActionType.GET_ITEM_KEY_NOT_FOUND:
+        return 'GET_ITEM_KEY_NOT_FOUND';
+      case I18nChangeActionType.NO_LANGUAGES_OBJECT:
+        return 'NO_LANGUAGES_OBJECT';
+      case I18nChangeActionType.NO_LANGUAGES_OBJECT_KEY_NOT_FOUND:
+        return 'NO_LANGUAGES_OBJECT_KEY_NOT_FOUND';
+      case I18nChangeActionType.ADD_LANGUAGE_NEW_LANGUAGES:
+        return 'ADD_LANGUAGE_NEW_LANGUAGES';
+      case I18nChangeActionType.ADD_LANGUAGE_NO_LANGUAGES_OBJECT:
+        return 'ADD_LANGUAGE_NO_LANGUAGES_OBJECT';
+      case I18nChangeActionType.SET_ITEM_NO_LANGUAGES_OBJECT:
+        return 'SET_ITEM_NO_LANGUAGES_OBJECT';
+      case I18nChangeActionType.NO_GET_MODULE_NO_CREATE_FLAG:
+        return 'NO_GET_MODULE_NO_CREATE_FLAG';
+      case I18nChangeActionType.ADD_LANGUAGE_ERROR:
+        return 'ADD_LANGUAGE_ERROR';
+      case I18nChangeActionType.SET_ITEM_NO_MODULE_FOUND:
+        return 'SET_ITEM_NO_MODULE_FOUND';
     }
   }
 
