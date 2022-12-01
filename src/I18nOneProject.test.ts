@@ -178,7 +178,7 @@ describe('I18nOneProject', () => {
     expect(mod1.getModuleItem()).toStrictEqual(mod01);
     project.forceReadAndWrite(false, true);
 
-    let cache_de = project.getLanguageCache('modref01', 'de', null);
+    let cache_de = project.getLanguageCache('test', 'modref01', 'de', null);
     expect(cache_de?.getSize()).toBe(3);
     expect(cache_de?.hasKey('logon')).toBeTruthy();
     expect(cache_de?.hasKey('logout')).toBeTruthy();

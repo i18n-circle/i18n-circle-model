@@ -45,8 +45,13 @@ export class I18nOneModule extends I18nHistoryIndex {
    * @param i18n i not null, then new key will be created in the default language
    * @returns A new I18nCache
    */
-  public getLanguageCache(modref: string, lngkey: string, i18n: I18nCircleModel | null): I18nCache | null {
-    return this.languages.getLanguageCache(modref, lngkey, i18n);
+  public getLanguageCache(
+    prjname: string,
+    modref: string,
+    lngkey: string,
+    i18n: I18nCircleModel | null,
+  ): I18nCache | null {
+    return this.languages.getLanguageCache(prjname, modref, lngkey, i18n);
   }
 
   /**

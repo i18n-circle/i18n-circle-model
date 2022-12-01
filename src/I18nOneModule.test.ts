@@ -57,7 +57,7 @@ describe('I18nOneModule', () => {
     expect(lkeys.length).toBe(1);
     expect(lkeys[0]).toBe('hello');
 
-    let cache = oneM.getLanguageCache('test01a', 'en', null);
+    let cache = oneM.getLanguageCache('test', 'test01a', 'en', null);
     expect(cache?.getSize()).toBe(3);
     expect(cache?.hasKey('logon')).toBeTruthy();
     expect(cache?.hasKey('logout')).toBeTruthy();
@@ -67,7 +67,7 @@ describe('I18nOneModule', () => {
     expect(cache?.get('signin')).toBe('signin');
     expect(cache?.getSize()).toBe(3);
 
-    let cache_de = oneM.getLanguageCache('test01a', 'de', null);
+    let cache_de = oneM.getLanguageCache('test', 'test01a', 'de', null);
     expect(cache_de?.getSize()).toBe(3);
     expect(cache_de?.hasKey('logon')).toBeTruthy();
     expect(cache_de?.hasKey('logout')).toBeTruthy();
@@ -85,7 +85,7 @@ describe('I18nOneModule', () => {
     expect(oneM.hasKey('de', 'hello')).toBeFalsy(); // only 'en' was updated
     expect(oneM.hasKey('en', 'hello')).toBeTruthy(); // only 'en' was updated
 
-    let cache_es = oneM.getLanguageCache('test01a', 'es', null);
+    let cache_es = oneM.getLanguageCache('test', 'test01a', 'es', null);
     expect(cache_es?.getSize()).toBe(1);
     expect(cache_es?.hasKey('hello')).toBeTruthy();
     expect(cache_es?.get('hello')).toBe('óla');
@@ -145,7 +145,7 @@ describe('I18nOneModule', () => {
     expect(oneM.hasLanguage('de')).toBeTruthy();
     expect(oneM.hasLanguage('es')).toBeTruthy();
 
-    let cache = oneM.getLanguageCache('test02b', 'en', null);
+    let cache = oneM.getLanguageCache('test', 'test02b', 'en', null);
     expect(cache?.getSize()).toBe(4);
     expect(cache?.hasKey('logon')).toBeTruthy();
     expect(cache?.hasKey('logout')).toBeTruthy();
@@ -157,7 +157,7 @@ describe('I18nOneModule', () => {
     expect(cache?.get('hello')).toBe('hello');
     expect(cache?.getSize()).toBe(4);
 
-    let cache_de = oneM.getLanguageCache('test02b', 'de', null);
+    let cache_de = oneM.getLanguageCache('test', 'test02b', 'de', null);
     expect(cache_de?.getSize()).toBe(3);
     expect(cache_de?.hasKey('logon')).toBeTruthy();
     expect(cache_de?.hasKey('logout')).toBeTruthy();
@@ -167,7 +167,7 @@ describe('I18nOneModule', () => {
     expect(cache_de?.get('signin')).toBe('Registrieren');
     expect(cache_de?.getSize()).toBe(3);
 
-    let cache_es = oneM.getLanguageCache('test02b', 'es', null);
+    let cache_es = oneM.getLanguageCache('test', 'test02b', 'es', null);
     expect(cache_es?.getSize()).toBe(2);
     expect(cache_es?.hasKey('hello')).toBeTruthy();
     expect(cache_es?.hasKey('goodbye')).toBeTruthy();

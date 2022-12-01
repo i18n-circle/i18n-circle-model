@@ -25,12 +25,13 @@ export class I18nOneLanguage {
    * @returns A new I18nCache
    */
   public getLanguageCache(
+    prjname: string,
     modref: string,
     lngkey: string,
     context: I18nContext,
     i18n: I18nCircleModel | null,
   ): I18nCache {
-    const cache = new I18nCache(modref, lngkey, this.onelng, context, i18n, this.subject);
+    const cache = new I18nCache(prjname, modref, lngkey, this.onelng, context, i18n, this.subject);
     return cache;
   }
 

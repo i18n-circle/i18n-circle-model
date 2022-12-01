@@ -48,10 +48,15 @@ export class I18nLanguages {
    * @param i18n i not null, then new key will be created in the default language
    * @returns A new I18nCache
    */
-  public getLanguageCache(modref: string, lngkey: string, i18n: I18nCircleModel | null): I18nCache | null {
+  public getLanguageCache(
+    prjname: string,
+    modref: string,
+    lngkey: string,
+    i18n: I18nCircleModel | null,
+  ): I18nCache | null {
     if (this.lngs.hasOwnProperty(lngkey)) {
       const lng: I18nOneLanguage = this.lngs[lngkey];
-      return lng.getLanguageCache(modref, lngkey, this.context.extendModule(lngkey), i18n);
+      return lng.getLanguageCache(prjname, modref, lngkey, this.context.extendModule(lngkey), i18n);
     } else {
       return null;
     }

@@ -7,6 +7,9 @@ import { I18nOneModule } from './I18nOneModule';
 import { I18nProjectDisplayItem } from './I18nProjectDisplayItem';
 
 export class I18nOneProject {
+  gerProjectName(): string {
+    return this.defaultContext.projectName;
+  }
   private modules: any = {};
   private _createFlag: boolean = true;
   public get createFlag(): boolean {
@@ -215,8 +218,13 @@ export class I18nOneProject {
    * @param i18n if not null, then new key will be created in the default language
    * @returns A new I18nCache
    */
-  public getLanguageCache(modref: string, lngkey: string, i18n: I18nCircleModel | null): I18nCache | null {
+  public getLanguageCache(
+    prjname: string,
+    modref: string,
+    lngkey: string,
+    i18n: I18nCircleModel | null,
+  ): I18nCache | null {
     const mod: I18nOneModule = this.getModule(modref);
-    return mod.getLanguageCache(modref, lngkey, i18n);
+    return mod.getLanguageCache(prjname, modref, lngkey, i18n);
   }
 }

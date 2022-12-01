@@ -12,6 +12,7 @@ import { I18nContext } from './I18nContext';
 
 export class I18nCache {
   private i18n: I18nCircleModel | null = null; // is null when no createflag
+  private prjname: string = '';
   private modref: string = '';
   private lngkey: string = '';
   private lngmap: any = {};
@@ -27,6 +28,7 @@ export class I18nCache {
    * @param subject the parent subject to track changes there
    */
   constructor(
+    prjname: string,
     modref: string,
     lngkey: string,
     onelng: any,
@@ -34,6 +36,7 @@ export class I18nCache {
     i18nCircle: I18nCircleModel | null,
     subject: Subject<I18nTranslateAction>,
   ) {
+    this.prjname = prjname;
     this.modref = modref;
     this.lngkey = lngkey;
     this.lngmap = onelng;
@@ -68,9 +71,16 @@ export class I18nCache {
       return this.lngmap[key];
     }
     if (this.i18n != null) {
-      return this.i18n.get(this.modref, this.lngkey, key);
+      return this.i18n.get(this.prjname, this.modref, this.lngkey, key);
     }
     return key;
+  }
+  public set(key: string, value: string): boolean {
+    this.lngmap[key] = value;
+    if (this.i18n != null) {
+      this.i18n.set(this.prjname, this.modref, this.lngkey, key, value);
+    }
+    return false;
   }
   /**
    *
@@ -86,5 +96,8 @@ export class I18nCache {
    */
   public getSize(): number {
     return Object.keys(this.lngmap).length;
+  }
+  public getKeys(): string[] {
+    return Object.keys(this.lngmap);
   }
 }

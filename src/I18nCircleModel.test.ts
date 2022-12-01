@@ -9,7 +9,7 @@ var tmpActions: string[] = [];
 var flagNewText: boolean = false;
 var i18nActionMessages: I18nCircleModel = new I18nCircleModel();
 i18nActionMessages.defaultContext = I18nContext.getContext('I18n-Circle');
-i18nActionMessages.addModule('I18n-Circle-Model', {
+i18nActionMessages.addModule('I18n-Circle', 'I18n-Circle-Model', {
   semanticVersion: 'V0.0.10',
   internalVersion: 2,
   status: 1,
@@ -42,8 +42,8 @@ describe('I18nCircleModel', () => {
       if (value.contextToString().startsWith('[I18n-Circle=>')) {
         return;
       }
-      if (!i18nActionMessages.hasKey('I18n-Circle-Model', 'en', value.msg)) {
-        i18nActionMessages.get('I18n-Circle-Model', 'en', value.msg); // auto create message.
+      if (!i18nActionMessages.hasKey('I18n-Circle', 'I18n-Circle-Model', 'en', value.msg)) {
+        i18nActionMessages.get('I18n-Circle', 'I18n-Circle-Model', 'en', value.msg); // auto create message.
         flagNewText = true;
       }
       tmpActions.push(value.action2String());
@@ -53,7 +53,10 @@ describe('I18nCircleModel', () => {
   afterAll(() => {
     // console.log("tmpActions=",tmpActions);
     if (flagNewText) {
-      console.log('i18n collected messages:', i18nActionMessages.getModule('I18n-Circle-Model').getModuleItem());
+      console.log(
+        'i18n collected messages:',
+        i18nActionMessages.getModule('I18n-Circle', 'I18n-Circle-Model').getModuleItem(),
+      );
     }
   });
 
@@ -86,7 +89,7 @@ describe('I18nCircleModel', () => {
   test('I18nCircleModel-Basic Modules', () => {
     var i18n: I18nCircleModel = new I18nCircleModel();
     expect(lastSteps(0)).toHaveLength(0); // no entry, first test case
-    var mod1 = i18n.addModule('modref01', mod01);
+    var mod1 = i18n.addModule('', 'modref01', mod01);
     expect(mod1).toBeTruthy();
 
     // console.log("56-modcreate:",lastSteps(0));
@@ -109,12 +112,12 @@ describe('I18nCircleModel', () => {
       'MODULE_CREATED: [defaultproject=>modref01=>=>]I18nOneModule.constructor(=>test02b__V0.1.0__2)=Module created',
     ]);
     expect(mod1.getModuleItem()).toStrictEqual(mod01);
-    var mod2 = i18n.getModule('modref01');
+    var mod2 = i18n.getModule('', 'modref01');
     expect(mod2).toBeTruthy();
     expect(mod2.getModuleItem()).toStrictEqual(mod01);
     // console.log("56-modcreate:",lastSteps(0));
     expect(lastSteps(0)).toHaveLength(15); // mod01 has 15 entries
-    var mod3 = i18n.getModule('modref03');
+    var mod3 = i18n.getModule('', 'modref03');
     // console.log("56-modcreate:",lastSteps(4));
     expect(lastSteps(0)).toHaveLength(15 + 4); // mod01 has 15+4 entries
     expect(lastSteps(4)).toHaveLength(4); // mod01 has 4 new entries
@@ -141,7 +144,7 @@ describe('I18nCircleModel', () => {
       },
     });
     expect(lastSteps(0)).toHaveLength(15 + 4); // mod01 has 15+4 entries
-    i18n.addLanguage('modref03', 'en', mod1.getItems('en'));
+    i18n.addLanguage('', 'modref03', 'en', mod1.getItems('en'));
     expect(lastSteps(0)).toHaveLength(15 + 4 + 1); // mod01 has 15+4+1 entries
     expect(lastSteps(1)).toStrictEqual([
       'ADD_LANGUAGE: [defaultproject=>modref03=>=>]I18nLanguages.addLanguage(=>en)=Language added to Module',
@@ -170,7 +173,7 @@ describe('I18nCircleModel', () => {
     expect(lastSteps(0)).toHaveLength(0); // mod01 has no entries
     var i18n: I18nCircleModel = new I18nCircleModel();
     expect(lastSteps(0)).toHaveLength(0); // mod01 has no entries
-    var mod1 = i18n.addModule('modref01', mod01);
+    var mod1 = i18n.addModule('', 'modref01', mod01);
     expect(lastSteps(0)).toHaveLength(15); // mod01 has 15 entries
     expect(mod1).toBeTruthy();
     expect(Object.keys(mod1.getModuleItem()).sort()).toStrictEqual(Object.keys(mod01).sort());
@@ -188,18 +191,18 @@ describe('I18nCircleModel', () => {
     // console.log(lastSteps(3));
     expect(i18n.createFlag).toBeFalsy();
 
-    expect(i18n.hasKey('modref01', 'de', 'logon')).toBeTruthy();
-    expect(i18n.get('modref01', 'de', 'logon')).toBe('Anmelden');
-    expect(i18n.get('modref01', 'de', 'jump')).toBe('jump');
-    expect(i18n.hasKey('modref01', 'de', 'jump')).toBeFalsy();
-    expect(i18n.get('modref01', 'en', 'jump')).toBe('jump');
-    expect(i18n.hasKey('modref01', 'en', 'jump')).toBeFalsy(); // no autocreate
+    expect(i18n.hasKey('', 'modref01', 'de', 'logon')).toBeTruthy();
+    expect(i18n.get('', 'modref01', 'de', 'logon')).toBe('Anmelden');
+    expect(i18n.get('', 'modref01', 'de', 'jump')).toBe('jump');
+    expect(i18n.hasKey('', 'modref01', 'de', 'jump')).toBeFalsy();
+    expect(i18n.get('', 'modref01', 'en', 'jump')).toBe('jump');
+    expect(i18n.hasKey('', 'modref01', 'en', 'jump')).toBeFalsy(); // no autocreate
 
-    expect(i18n.get('modref01', 'en_US', 'jump')).toBe('jump');
-    expect(i18n.hasKey('modref01', 'en_US', 'jump')).toBeFalsy(); // no autocreate
+    expect(i18n.get('', 'modref01', 'en_US', 'jump')).toBe('jump');
+    expect(i18n.hasKey('', 'modref01', 'en_US', 'jump')).toBeFalsy(); // no autocreate
 
-    expect(i18n.get('modref04', 'en', 'jump')).toBe('jump');
-    expect(i18n.hasKey('modref04', 'en', 'jump')).toBeFalsy(); // no autocreate
+    expect(i18n.get('', 'modref04', 'en', 'jump')).toBe('jump');
+    expect(i18n.hasKey('', 'modref04', 'en', 'jump')).toBeFalsy(); // no autocreate
     expect(lastSteps(0)).toHaveLength(15 + 2); // mod01 has no more entries then before/readonly.
 
     mod1.createFlag = true;
@@ -215,31 +218,31 @@ describe('I18nCircleModel', () => {
     ]);
     expect(i18n.createFlag).toBeTruthy();
 
-    expect(i18n.hasKey('modref01', 'de', 'logon')).toBeTruthy();
-    expect(i18n.get('modref01', 'de', 'logon')).toBe('Anmelden');
+    expect(i18n.hasKey('', 'modref01', 'de', 'logon')).toBeTruthy();
+    expect(i18n.get('', 'modref01', 'de', 'logon')).toBe('Anmelden');
     expect(lastSteps(0)).toHaveLength(19); // mod01 has 19 entries
-    expect(i18n.get('modref01', 'de', 'jump')).toBe('jump');
+    expect(i18n.get('', 'modref01', 'de', 'jump')).toBe('jump');
     expect(lastSteps(0)).toHaveLength(19 + 2); // mod01 has 19 entries
     expect(lastSteps(2)).toStrictEqual([
       'SET_ITEM: [defaultproject=>modref01=>en=>jump]I18nOneLanguage.setItem(=>jump)=Set item value for one key',
       'CREATE_DEFAULT_ENTRY: [defaultproject=>modref01=>en=>jump]I18nLanguages.getOrCreateItem(=>jump)=Added the key to the default language',
     ]);
-    expect(i18n.hasKey('modref01', 'de', 'jump')).toBeFalsy();
-    expect(i18n.hasKey('modref01', 'en', 'jump')).toBeTruthy(); // autocreate
-    expect(i18n.get('modref01', 'en', 'jump')).toBe('jump');
+    expect(i18n.hasKey('', 'modref01', 'de', 'jump')).toBeFalsy();
+    expect(i18n.hasKey('', 'modref01', 'en', 'jump')).toBeTruthy(); // autocreate
+    expect(i18n.get('', 'modref01', 'en', 'jump')).toBe('jump');
 
     expect(lastSteps(0)).toHaveLength(19 + 2); // mod01 has 19+2 entries
-    expect(i18n.get('modref01', 'en_US', 'fall')).toBe('fall');
+    expect(i18n.get('', 'modref01', 'en_US', 'fall')).toBe('fall');
     expect(lastSteps(0)).toHaveLength(19 + 4); // mod01 has 19+4 entries
     expect(lastSteps(2)).toStrictEqual([
       'SET_ITEM: [defaultproject=>modref01=>en=>fall]I18nOneLanguage.setItem(=>fall)=Set item value for one key',
       'CREATE_DEFAULT_ENTRY: [defaultproject=>modref01=>en=>fall]I18nLanguages.getOrCreateItem(=>fall)=Added the key to the default language',
     ]);
-    expect(i18n.hasKey('modref01', 'en', 'fall')).toBeTruthy(); // autocreate
-    expect(i18n.hasKey('modref01', 'en_US', 'fall')).toBeFalsy();
+    expect(i18n.hasKey('', 'modref01', 'en', 'fall')).toBeTruthy(); // autocreate
+    expect(i18n.hasKey('', 'modref01', 'en_US', 'fall')).toBeFalsy();
 
     expect(lastSteps(0)).toHaveLength(23); // mod01 has 19+4 entries
-    expect(i18n.get('modref04', 'en', 'jump')).toBe('jump');
+    expect(i18n.get('', 'modref04', 'en', 'jump')).toBe('jump');
     expect(lastSteps(0)).toHaveLength(23 + 7); // mod01 has 19+4 entries
     // console.log(lastSteps(7));
     expect(lastSteps(7)).toStrictEqual([
@@ -252,23 +255,23 @@ describe('I18nCircleModel', () => {
       'CREATE_DEFAULT_ENTRY: [defaultproject=>modref04=>en=>jump]I18nLanguages.getOrCreateItem(=>jump)=Added the key to the default language',
     ]);
     expect(i18n.createFlag).toBeTruthy();
-    var mod4 = i18n.getModule('modref04');
+    var mod4 = i18n.getModule('', 'modref04');
     expect(mod4).toBeTruthy();
     expect(mod4.createFlag).toBeTruthy();
     // console.log(JSON.stringify(mod4.getModuleItem()));
-    expect(i18n.hasKey('modref04', 'en', 'jump')).toBeTruthy(); // autocreate
+    expect(i18n.hasKey('', 'modref04', 'en', 'jump')).toBeTruthy(); // autocreate
   });
 
   test('I18nCircleModel-Cache', () => {
     tmpActions = [];
     expect(lastSteps(0)).toHaveLength(0);
     var i18n: I18nCircleModel = new I18nCircleModel();
-    var mod1 = i18n.addModule('modref01', mod01);
+    var mod1 = i18n.addModule('', 'modref01', mod01);
     expect(lastSteps(0)).toHaveLength(15); // mod01 has 15 entries
     expect(mod1).toBeTruthy();
     expect(mod1.getModuleItem()).toStrictEqual(mod01);
 
-    let cache_de = i18n.getLanguageCache('modref01', 'de');
+    let cache_de = i18n.getLanguageCache('', 'modref01', 'de');
     expect(lastSteps(0)).toHaveLength(15); // mod01 has 15 entries
     expect(cache_de?.getSize()).toBe(3);
     expect(cache_de?.hasKey('logon')).toBeTruthy();
@@ -314,6 +317,6 @@ describe('I18nCircleModel', () => {
         defaultLanguage: 'en',
       },
     });
-    expect(i18n.hasKey('modref01', 'en', 'new stuff')).toBeTruthy();
+    expect(i18n.hasKey('', 'modref01', 'en', 'new stuff')).toBeTruthy();
   });
 });

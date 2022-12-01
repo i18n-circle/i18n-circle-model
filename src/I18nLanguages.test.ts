@@ -140,7 +140,7 @@ describe('I18nLanguages', () => {
   test('I18nLanguages-I18nCache', () => {
     let twoLS = new I18nLanguages(ls02, test_context.extendModule('Basics'));
     expect(twoLS).toBeTruthy();
-    let cache = twoLS.getLanguageCache('test', 'en', null);
+    let cache = twoLS.getLanguageCache('test', 'test', 'en', null);
     expect(cache?.getSize()).toBe(3);
     expect(cache?.hasKey('logon')).toBeTruthy();
     expect(cache?.hasKey('logout')).toBeTruthy();
@@ -155,14 +155,14 @@ describe('I18nLanguages', () => {
     expect(cache?.hasKey('change password')).toBeFalsy();
     // no auto update, because no i18n in cache!
     expect(cache?.getSize()).toBe(2);
-    cache = twoLS.getLanguageCache('test', 'de', null);
+    cache = twoLS.getLanguageCache('test', 'test', 'de', null);
     expect(cache?.getSize()).toBe(2);
     expect(cache?.get('logon')).toBe('Anmelden');
     expect(cache?.get('logout')).toBe('Verlassem');
     twoLS.setItem('de', 'logout', 'Abmelden');
     expect(cache?.get('logout')).toBe('Abmelden'); // test auto update
     expect(cache?.getSize()).toBe(2);
-    cache = twoLS.getLanguageCache('test', 'fr', null);
+    cache = twoLS.getLanguageCache('test', 'test', 'fr', null);
     expect(cache?.getSize()).toBe(2);
     expect(cache?.get('logon')).toBe('entrer');
     expect(cache?.get('hello')).toBe('bonjour');

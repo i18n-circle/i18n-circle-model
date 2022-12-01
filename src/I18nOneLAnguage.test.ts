@@ -92,7 +92,7 @@ describe('I18nOneLanguage', () => {
     expect(Object.keys(three.getItems()).length).toBe(7);
     expect(three.getItem('test8')).toBe('test8');
     expect(one.getItem('test8')).toBe('test8-val2');
-    let cache = three.getLanguageCache('test', 'test', test_context, null);
+    let cache = three.getLanguageCache('test', 'test', 'test', test_context, null);
     expect(cache?.getSize()).toBe(7);
     expect(cache.get('test1')).toBe('test1-val1');
     expect(cache.get('test2')).toBe('test2-val2');

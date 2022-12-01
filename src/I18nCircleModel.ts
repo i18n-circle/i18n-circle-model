@@ -51,7 +51,7 @@ export class I18nCircleModel {
     result.concat(Object.keys(this.otherProjects));
     return result;
   }
-  public getProjectDisplayList(prjname: string, lngkey: string): I18nProjectDisplayItem[] {
+  public getProjectDisplayList(lngkey: string): I18nProjectDisplayItem[] {
     const result: I18nProjectDisplayItem[] = [];
     this.getProjectList().forEach((value: string) => {
       const prj = this.getProject(value);
@@ -79,8 +79,12 @@ export class I18nCircleModel {
    * @param readAndWrite if readonly false and this is true, all can be changed.
    * @returns true if somethng was changed.
    */
-  public forceReadAndWrite(readonly: boolean, readAndWrite: boolean): boolean {
-    return this.defaultProject.forceReadAndWrite(readonly, readAndWrite);
+  public forceReadAndWrite(prj: string, readonly: boolean, readAndWrite: boolean): boolean {
+    if (prj === '') {
+      return this.defaultProject.forceReadAndWrite(readonly, readAndWrite);
+    } else {
+      return this.getProject(prj).forceReadAndWrite(readonly, readAndWrite);
+    }
   }
 
   /**
@@ -89,12 +93,20 @@ export class I18nCircleModel {
    * @param moddata the full data as javascrpt object
    * @returns the newly added module itself
    */
-  public addModule(modref: string, moddata: any): I18nOneModule {
-    return this.defaultProject.addModule(modref, moddata);
+  public addModule(prj: string, modref: string, moddata: any): I18nOneModule {
+    if (prj === '') {
+      return this.defaultProject.addModule(modref, moddata);
+    } else {
+      return this.getProject(prj).addModule(modref, moddata);
+    }
   }
 
-  public getModule(modref: string): I18nOneModule {
-    return this.defaultProject.getModule(modref);
+  public getModule(prj: string, modref: string): I18nOneModule {
+    if (prj === '') {
+      return this.defaultProject.getModule(modref);
+    } else {
+      return this.getProject(prj).getModule(modref);
+    }
   }
   /**
    * sets or merge a language collection of key/value-pairs
@@ -103,15 +115,23 @@ export class I18nCircleModel {
    * @param lngkey - the language key e.g. 'en'
    * @param lngmap - the javascript object to initialize.
    */
-  public addLanguage(modref: string, lngkey: string, lngdata: any): void {
-    this.defaultProject.addLanguage(modref, lngkey, lngdata);
+  public addLanguage(prj: string, modref: string, lngkey: string, lngdata: any): void {
+    if (prj === '') {
+      this.defaultProject.addLanguage(modref, lngkey, lngdata);
+    } else {
+      this.getProject(prj).addLanguage(modref, lngkey, lngdata);
+    }
   }
   /**
    *
    * @returns a list of module references
    */
-  public getModuleReferences(): string[] {
-    return this.defaultProject.getModuleReferences();
+  public getModuleReferences(prj: string = ''): string[] {
+    if (prj === '') {
+      return this.defaultProject.getModuleReferences();
+    } else {
+      return this.getProject(prj).getModuleReferences();
+    }
   }
 
   /**
@@ -121,12 +141,27 @@ export class I18nCircleModel {
    * @param key the key
    * @returns the language value if existent or the key if not.
    */
-  public get(modref: string, lngkey: string, key: string): string {
-    return this.defaultProject.get(modref, lngkey, key);
+  public get(prj: string, modref: string, lngkey: string, key: string): string {
+    if (prj === '') {
+      return this.defaultProject.get(modref, lngkey, key);
+    } else {
+      return this.getProject(prj).get(modref, lngkey, key);
+    }
+  }
+  public set(prj: string, modref: string, lngkey: string, key: string, value: string) {
+    if (prj === '') {
+      this.defaultProject.getModule(modref).setItem(lngkey, key, value);
+    } else {
+      this.getProject(prj).getModule(modref).setItem(lngkey, key, value);
+    }
   }
 
-  public hasKey(modref: string, lngkey: string, key: string): boolean {
-    return this.defaultProject.hasKey(modref, lngkey, key);
+  public hasKey(prj: string, modref: string, lngkey: string, key: string): boolean {
+    if (prj === '') {
+      return this.defaultProject.hasKey(modref, lngkey, key);
+    } else {
+      return this.getProject(prj).hasKey(modref, lngkey, key);
+    }
   }
 
   /**
@@ -136,8 +171,17 @@ export class I18nCircleModel {
    * @param i18n if not null, then new key will be created in the default language
    * @returns A new I18nCache
    */
-  public getLanguageCache(modref: string, lngkey: string): I18nCache | null {
-    return this.defaultProject.getLanguageCache(modref, lngkey, this.createFlag ? this : null);
+  public getLanguageCache(prj: string, modref: string, lngkey: string): I18nCache | null {
+    if (prj === '') {
+      return this.defaultProject.getLanguageCache(
+        this.defaultProject.gerProjectName(),
+        modref,
+        lngkey,
+        this.createFlag ? this : null,
+      );
+    } else {
+      return this.getProject(prj).getLanguageCache(prj, modref, lngkey, this.createFlag ? this : null);
+    }
   }
 
   private static changeSubject: Subject<I18nChangeAction> | undefined;
