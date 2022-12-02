@@ -307,14 +307,45 @@ export class I18nOneProject {
       return null;
     }
     let tal: I18nTranslateActions | null = null;
+    const allLngCounter: any = {};
+    const allModCounter: any = {};
+    const allLng: string[] = [];
     this.getModuleReferences().forEach((refval: string) => {
-      const newTal = this.getModule(refval).checkConsistency(refval) || null;
+      const mod = this.getModule(refval);
+      const newTal = mod.checkConsistency(refval) || null;
       if (newTal != null) {
         if (tal == null) {
           tal = newTal;
         } else {
           tal.appendOther(newTal);
         }
+      }
+      const modlng = mod.getLanguagesKeys();
+      allModCounter[refval] = modlng.length;
+      modlng.forEach((lngkey: string) => {
+        if (!allLngCounter.hasOwnProperty(lngkey)) {
+          allLngCounter[lngkey] = 1;
+          allLng.push(lngkey);
+        } else {
+          allLngCounter[lngkey]++;
+        }
+      });
+    });
+    Object.keys(allModCounter).forEach((refval) => {
+      const mod = this.getModule(refval);
+      const modlng = mod.getLanguagesKeys();
+      if (allModCounter[refval] !== allLng.length) {
+        allLng.forEach((lngkey: string) => {
+          if (modlng.indexOf(lngkey) === -1) {
+            const newTal: I18nTranslateActions | null = new I18nTranslateActions(refval, lngkey, refval, lngkey);
+            newTal.setupNewLanguage();
+            if (tal == null) {
+              tal = newTal;
+            } else {
+              tal.insertOther(newTal);
+            }
+          }
+        });
       }
     });
     return tal;

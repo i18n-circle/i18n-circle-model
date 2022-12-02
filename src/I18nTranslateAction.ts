@@ -7,25 +7,38 @@ import { I18nTranslateActionType } from './I18nTranslateActionType';
  */
 
 export class I18nTranslateAction {
-  public getKey(): string | undefined {
-    return this.key;
+  private _actionType: I18nTranslateActionType = I18nTranslateActionType.NO_OP;
+  public get actionType(): I18nTranslateActionType {
+    return this._actionType;
   }
-  public getValue(): string | undefined {
-    return this.value;
+  private _sourceMod?: string | undefined;
+  public get sourceMod(): string | undefined {
+    return this._sourceMod;
   }
-  private actionType: I18nTranslateActionType = I18nTranslateActionType.NO_OP;
-  private sourceMod?: string;
-  private sourceLngKey?: string;
-  private targetMod?: string;
-  private targetLngKey?: string;
-  private key?: string;
-  private value?: string;
+  private _sourceLngKey?: string | undefined;
+  public get sourceLngKey(): string | undefined {
+    return this._sourceLngKey;
+  }
+  private _targetMod?: string | undefined;
+  public get targetMod(): string | undefined {
+    return this._targetMod;
+  }
+  private _targetLngKey?: string | undefined;
+  public get targetLngKey(): string | undefined {
+    return this._targetLngKey;
+  }
+  private _key?: string | undefined;
+  public get key(): string | undefined {
+    return this._key;
+  }
+  private _value?: string | undefined;
+  public get value(): string | undefined {
+    return this._value;
+  }
   private constructor(actionType: I18nTranslateActionType) {
-    this.actionType = actionType;
+    this._actionType = actionType;
   }
-  public queryActionType(): I18nTranslateActionType {
-    return this.actionType;
-  }
+
   /**
    * sets the source and target form this action.
    *
@@ -35,10 +48,10 @@ export class I18nTranslateAction {
    * @param targetLngKey  - languagekey of the current target language
    */
   public setSourceAndTarget(sourceMod: string, sourceLngKey: string, targetMod: string, targetLngKey: string) {
-    this.sourceMod = sourceMod;
-    this.sourceLngKey = sourceLngKey;
-    this.targetMod = targetMod;
-    this.targetLngKey = targetLngKey;
+    this._sourceMod = sourceMod;
+    this._sourceLngKey = sourceLngKey;
+    this._targetMod = targetMod;
+    this._targetLngKey = targetLngKey;
   }
   /**
    * Converts this action to string
@@ -85,8 +98,8 @@ export class I18nTranslateAction {
    */
   public static setupNewKey(key: string, val: string): I18nTranslateAction {
     const ta = new I18nTranslateAction(I18nTranslateActionType.NEW_KEY);
-    ta.key = key;
-    ta.value = val;
+    ta._key = key;
+    ta._value = val;
     return ta;
   }
   /**
@@ -96,7 +109,7 @@ export class I18nTranslateAction {
    */
   public static setupDelKey(key: string): I18nTranslateAction {
     const ta = new I18nTranslateAction(I18nTranslateActionType.DEL_KEY);
-    ta.key = key;
+    ta._key = key;
     return ta;
   }
   /**
@@ -107,8 +120,8 @@ export class I18nTranslateAction {
    */
   public static setupUpdateValue(key: string, val: string): I18nTranslateAction {
     const ta = new I18nTranslateAction(I18nTranslateActionType.UPDATE_VALUE);
-    ta.key = key;
-    ta.value = val;
+    ta._key = key;
+    ta._value = val;
     return ta;
   }
   /**

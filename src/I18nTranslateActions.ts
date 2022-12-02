@@ -150,4 +150,13 @@ export class I18nTranslateActions {
       this.transactions = this.transactions.concat(other.transactions);
     }
   }
+  /**
+   *
+   * @param other the other action list to be inserted before this one
+   */
+  public insertOther(other: I18nTranslateActions) {
+    if (other.getActionSize() > 0) {
+      this.transactions = other.transactions.concat(this.transactions);
+    }
+  }
 }

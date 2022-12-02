@@ -2,6 +2,7 @@ import { describe, expect, test } from '@jest/globals';
 
 import { I18nOneProject } from './I18nOneProject';
 import { I18nIndexStatus } from './I18nIndexStatus';
+import { I18nContext } from './I18nContext';
 
 describe('I18nOneProject', () => {
   var mod01 = {
@@ -216,5 +217,76 @@ describe('I18nOneProject', () => {
         defaultLanguage: 'en',
       },
     });
+  });
+  const prj01 = {
+    modules: {
+      modref01: {
+        internalName: 'test02b__V0.1.0__2',
+        semanticVersion: 'V0.1.0',
+        internalVersion: 2,
+        status: 1,
+        createFlag: true,
+        languages: {
+          en: {
+            logon: 'logon',
+            logout: 'logout',
+            signin: 'signin',
+            hello: 'hello',
+          },
+          de: {
+            logon: 'Anmelden',
+            logout: 'Abmelden',
+            signin: 'Registrieren',
+          },
+          es: {
+            hello: 'óla',
+            goodbye: 'adiós',
+          },
+          defaultLanguage: 'en',
+        },
+      },
+      modref03: {
+        internalName: 'modref03__V0.0.1__1',
+        semanticVersion: 'V0.0.1',
+        internalVersion: 1,
+        status: 1,
+        createFlag: true,
+        languages: {
+          en: {
+            logon: 'logon',
+            logout: 'logout',
+            signin: 'signin',
+            hello: 'hello',
+          },
+          fr: {
+            hello: 'bonjour',
+            goodbye: 'au revoir',
+          },
+          defaultLanguage: 'en',
+        },
+      },
+    },
+    createFlag: true,
+  };
+
+  test('I18nCircleModel-Basic Modules', () => {
+    const context = I18nContext.getContext('prj01');
+    var project: I18nOneProject = I18nOneProject.createFromData('prj01', prj01, context);
+    const tal = project.checkConsistency(null);
+    expect(tal?.getTransScript()).toHaveLength(12);
+    expect(tal?.getTransScript()).toStrictEqual([
+      '[modref03.es=>modref03.es]: NEW_LANGUAGE',
+      '[modref03.de=>modref03.de]: NEW_LANGUAGE',
+      '[modref01.fr=>modref01.fr]: NEW_LANGUAGE',
+      '[modref01.en=>modref01.de]: NEW_KEY(hello,hello)',
+      '[modref01.en=>modref01.es]: NEW_KEY(logon,logon)',
+      '[modref01.en=>modref01.es]: NEW_KEY(logout,logout)',
+      '[modref01.en=>modref01.es]: NEW_KEY(signin,signin)',
+      '[modref01.en=>modref01.es]: DEL_KEY(goodbye)',
+      '[modref03.en=>modref03.fr]: NEW_KEY(logon,logon)',
+      '[modref03.en=>modref03.fr]: NEW_KEY(logout,logout)',
+      '[modref03.en=>modref03.fr]: NEW_KEY(signin,signin)',
+      '[modref03.en=>modref03.fr]: DEL_KEY(goodbye)',
+    ]);
   });
 });

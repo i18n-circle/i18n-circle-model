@@ -44,9 +44,9 @@ export class I18nCache {
     this.i18n = i18nCircle;
     // console.log("I18nCache-init",modref,lngkey,onelng,i18nCircle?true:false);
     subject.subscribe((action: I18nTranslateAction) => {
-      const key = action.getKey();
-      const value = action.getValue();
-      switch (action.queryActionType()) {
+      const key = action.key;
+      const value = action.value;
+      switch (action.actionType) {
         case I18nTranslateActionType.UPDATE_VALUE:
         case I18nTranslateActionType.NEW_KEY:
           if (typeof key === 'string' && typeof value === 'string') {
