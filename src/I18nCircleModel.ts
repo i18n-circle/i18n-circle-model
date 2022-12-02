@@ -79,8 +79,8 @@ export class I18nCircleModel {
    */
   public getProjectList(): string[] {
     const result: string[] = [this.defaultProject.defaultContext.projectName];
-    result.concat(Object.keys(this.otherProjects));
-    return result;
+    const oprjlist = Object.keys(this.otherProjects);
+    return result.concat(oprjlist);
   }
   /**
    *

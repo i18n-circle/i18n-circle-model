@@ -28,6 +28,7 @@ i18nActionMessages.addModule('I18n-Circle', 'I18n-Circle-Model', {
       'Added the key to the default language': 'Added the key to the default language',
       'Get item failed.': 'Get item failed.',
       'GSet one module failed, no create flag': 'GSet one module failed, no create flag',
+      'Create one project': 'Create one project',
     },
     defaultLanguage: 'en',
   },
@@ -331,5 +332,11 @@ describe('I18nCircleModel', () => {
       },
     });
     expect(i18n.hasKey('', 'modref01', 'en', 'new stuff')).toBeTruthy();
+  });
+  test('I18nCircleModel-projects', () => {
+    const i18n = new I18nCircleModel('test1');
+    expect(i18n.getProjectList()).toStrictEqual(['test1']);
+    expect(i18n.addProject('test2', {})).toBeTruthy();
+    expect(i18n.getProjectList()).toStrictEqual(['test1', 'test2']);
   });
 });
