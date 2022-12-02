@@ -5,6 +5,7 @@ import { I18nContext } from './I18nContext';
 import { I18nModuleDisplayItem } from './I18nModuleDisplayItem';
 import { I18nOneModule } from './I18nOneModule';
 import { I18nProjectDisplayItem } from './I18nProjectDisplayItem';
+import { I18nTranslateActions } from './I18nTranslateActions';
 
 export class I18nOneProject {
   private modules: any = {};
@@ -291,5 +292,31 @@ export class I18nOneProject {
   ): I18nCache | null {
     const mod: I18nOneModule = this.getModule(modref);
     return mod.getLanguageCache(prjname, modref, lngkey, i18n);
+  }
+
+  /**
+   *
+   * @param modref if null, all modules are scanned, the existing module otherwise
+   * @returns a transaction list to fix the inconsistencies or null if valid
+   */
+  public checkConsistency(modref: string | null): I18nTranslateActions | null {
+    if (modref != null && typeof modref === 'string' && this.modules.hasOwnProperty(modref)) {
+      return this.getModule(modref).checkConsistency(modref) || null;
+    }
+    if (modref != null) {
+      return null;
+    }
+    let tal: I18nTranslateActions | null = null;
+    this.getModuleReferences().forEach((refval: string) => {
+      const newTal = this.getModule(refval).checkConsistency(refval) || null;
+      if (newTal != null) {
+        if (tal == null) {
+          tal = newTal;
+        } else {
+          tal.appendOther(newTal);
+        }
+      }
+    });
+    return tal;
   }
 }

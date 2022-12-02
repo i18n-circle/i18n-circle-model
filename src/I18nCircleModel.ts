@@ -5,6 +5,7 @@ import { I18nContext } from './I18nContext';
 import { I18nOneModule } from './I18nOneModule';
 import { I18nOneProject } from './I18nOneProject';
 import { I18nProjectDisplayItem } from './I18nProjectDisplayItem';
+import { I18nTranslateActions } from './I18nTranslateActions';
 
 export class I18nCircleModel {
   private defaultProject: I18nOneProject;
@@ -254,6 +255,19 @@ export class I18nCircleModel {
     } else {
       return this.getProject(prj).getLanguageCache(prj, modref, lngkey, this.createFlag ? this : null);
     }
+  }
+
+  /**
+   *
+   * @param prj name of the project to use, it' the default project if ''.
+   * @param modref if null, all modules are scanned, the existing module otherwise
+   * @returns a transaction list to fix the inconsistencies or null if valid
+   */
+  public checkConsistency(prj: string, modref: string | null): I18nTranslateActions | null {
+    if (prj === '') {
+      return this.defaultProject.checkConsistency(modref);
+    }
+    return this.getProject(prj).checkConsistency(modref);
   }
 
   private static changeSubject: Subject<I18nChangeAction> | undefined;
