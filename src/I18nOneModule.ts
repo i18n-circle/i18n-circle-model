@@ -16,6 +16,9 @@ export class I18nOneModule extends I18nHistoryIndex {
   private languages: I18nLanguages;
   private context: I18nContext;
 
+  public get defaultLng(): string {
+    return this.languages.defaultLng;
+  }
   /**
    *
    * @returns gets an representation of the Hinstory Index (parent class)

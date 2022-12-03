@@ -206,6 +206,13 @@ export class I18nCircleModel {
       return this.getProject(prj).get(modref, lngkey, key);
     }
   }
+  public getDefaultLanguage(prj: string, modref: string): string {
+    if (prj === '') {
+      return this.defaultProject.getModule(modref).defaultLng;
+    } else {
+      return this.getProject(prj).getModule(modref).defaultLng;
+    }
+  }
   /**
    * @param prj name of the project to use, it' the default project if ''.
    * @param modref the module reference
