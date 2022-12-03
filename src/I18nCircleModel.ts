@@ -213,6 +213,13 @@ export class I18nCircleModel {
       return this.getProject(prj).getModule(modref).defaultLng;
     }
   }
+  public delete(prj: string, modref: string, lngkey: string, key: string): void {
+    if (prj === '') {
+      return this.defaultProject.getModule(modref).deleteItem(lngkey, key);
+    } else {
+      return this.getProject(prj).getModule(modref).deleteItem(lngkey, key);
+    }
+  }
   /**
    * @param prj name of the project to use, it' the default project if ''.
    * @param modref the module reference
