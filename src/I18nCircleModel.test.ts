@@ -339,4 +339,135 @@ describe('I18nCircleModel', () => {
     expect(i18n.addProject('test2', {})).toBeTruthy();
     expect(i18n.getProjectList()).toStrictEqual(['test1', 'test2']);
   });
+  test.skip('I18nCircleModel-setDefaultProject',() => {
+    const i18n = new I18nCircleModel('test1');
+    expect(i18n.getProjectList()).toStrictEqual(['test1']);
+    const prj = i18n.setDefaultProject('test1',{
+      "modules": {
+        "full": {
+          "internalName": "full__V0.0.1__1",
+          "semanticVersion": "V0.0.1",
+          "internalVersion": 1,
+          "status": 1,
+          "createFlag": true,
+          "languages": {
+            "en": {
+              "New": "New",
+              "Open": "Open",
+              "Import": "Import",
+              "Export": "Export",
+              "Logout": "Logout",
+              "Projects": "Projects",
+              "Dashboard": "Dashboard",
+              "Login": "Login",
+              "Back to Start Page": "Back to Start Page",
+              "Redirecting at work, please wait": "Redirecting at work, please wait",
+              "Project Id": "Project Id",
+              "Project Short": "Project Short",
+              "Modules": "Modules",
+              "Project: ": "Project: ",
+              "Show List": "Show List",
+              "Module Id": "Module Id",
+              "Languages": "Languages",
+              "Language Keys": "Language Keys",
+              "Module: ": "Module: ",
+              "Language: ": "Language: ",
+              "Checks": "Checks",
+              "Check consistency": "Check consistency",
+              "No actions initialized": "No actions initialized",
+              "Consistency check succeded":"Consistency check succeded",
+              "Create new language in other module.": "Create new language in other module.",
+              "Create Language": "Create Language",
+              "New Element to create/translate": "New Element to create/translate",
+              "Create Element": "Create Element",
+              "Element to be deleted or not.": "Element to be deleted or not.",
+              "Create Element in Default Langauge": "Create Element in Default Langauge",
+              "Delete Element": "Delete Element",
+              "Project": "Project",
+              "Module": "Module",
+              "Language Key": "Language Key",
+              "Element Key": "Element Key",
+              "Element Value": "Element Value",
+              // End applify, start app
+              "Back":"Back",
+              "comfort search":"comfort search",
+              "Sign In or Register":"Sign In or Register",
+              "User":"User",
+              "en": "English",
+              "de": "German (Deutsch)"
+            },
+            "de": {
+              "New": "Neu",
+              "Open": "Öffnen",
+              "Import": "Import",
+              "Export": "Export",
+              "Logout": "Abmelden",
+              "Projects": "Projekte",
+              "Dashboard": "Dashboard",
+              "Login": "Anmelden",
+              "Back to Start Page": "Zurück zur Startseite",
+              "Redirecting at work, please wait": "Umleitung im Gange, bitte warten",
+              "Project Id": "Projekt-Id",
+              "Project Short": "Projekt-Kurztext",
+              "Modules": "Module",
+              "Project: ": "Projekt: ",
+              "Show List": "Liste anzeigen",
+              "Module Id": "Modul-Id",
+              "Languages": "Sprachen",
+              "Language Keys": "Sprachschlüssel",
+              "Module: ": "Modul: ",
+              "Language: ": "Sprache: ",
+              "Checks": "Checks",
+              "Check consistency": "Konsistenzprüfung",
+              "No actions initialized": "Initiailisierung der Aktionen fehlt",
+              "Consistency check succeded":"Konistenzprüfung erfolgreich",
+              "Create new language in other module.": "Eine Sprache in einem anderen Moodul anlegen",
+              "Create Language": "Sprache anlegen",
+              "New Element to create/translate": "Neues Element anzulegen/zu übersetzen",
+              "Create Element": "Element anlegen",
+              "Element to be deleted or not.": "Element zum Löschen oder nicht.",
+              "Create Element in Default Langauge": "Element anlegen in der Standardsprache",
+              "Delete Element": "Lösche Element",
+              "Project": "Projekt",
+              "Module": "Modul",
+              "Language Key": "Sprachschlüssel",
+              "Element Key": "Elementschlüssel",
+              "Element Value": "Elementwert",
+              // end language/amplify start app
+              "Back":"Zurück",
+              "comfort search":"Komfortsuche",
+              "Sign In or Register":"Anmelden oder Registrieren",
+              "User":"Benutzer",
+              "en": "Englisch (English)",
+              "de": "Deutsch"
+            },
+            "defaultLanguage": "en"
+          }
+        },
+        ".project": {
+          "internalName": ".project__V0.0.1__1",
+          "semanticVersion": "V0.0.1",
+          "internalVersion": 1,
+          "status": 1,
+          "createFlag": true,
+          "languages": {
+            "en": {
+              "project shortname": "I18n-Circle-Maintenance",
+              "project description": "Maintenance of i18n projects"
+            },
+            "de": {
+              "project shortname": "Verwaltung für i18n-Projekte",
+              "project description": "Verwaltung für i18n-Projekte"
+            },
+            "defaultLanguage": "en"
+          }
+        }
+      },
+      "createFlag": true
+    });
+    // console.log('prjinit-2',prj.getProjectItem());
+    //console.log('prjinit-3',i18n.getProject('test1'));
+    // i18n.forceReadAndWrite('test1',true,false);
+    // console.log('prjInit-4',i18n.get('test1','full','de','Back'));
+  })
 });
